@@ -1,0 +1,1 @@
+export default function Home(){return <main className="shell py-20"><p className="eyebrow">Reusable ecommerce foundation</p><h1 className="mt-4 text-5xl font-bold">Commerce Starter</h1><p className="mt-6 text-lg">Secure Laravel APIs and a fast Next.js storefront, ready for client branding.</p><a className="button mt-8 inline-flex" href="/products">Browse products</a></main>}

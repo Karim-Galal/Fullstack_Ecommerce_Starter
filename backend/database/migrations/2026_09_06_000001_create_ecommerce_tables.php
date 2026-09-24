@@ -1,0 +1,45 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration {
+    public function up(): void {
+        Schema::create('stores', function (Blueprint $table) {
+            $table->id(); $table->string('name'); $table->string('slug')->unique(); $table->string('currency', 3)->default('EGP'); $table->timestamps();
+        });
+        Schema::table('users', function (Blueprint $table) { $table->foreign('store_id')->references('id')->on('stores')->nullOnDelete(); });
+        Schema::create('categories', function (Blueprint $table) {
+            $table->id(); $table->foreignId('store_id')->constrained()->cascadeOnDelete(); $table->foreignId('parent_id')->nullable()->constrained('categories')->nullOnDelete(); $table->string('slug'); $table->boolean('is_active')->default(true); $table->unsignedInteger('sort_order')->default(0); $table->timestamps(); $table->unique(['store_id','slug']); $table->index(['store_id','parent_id']);
+        });
+        Schema::create('category_translations', function (Blueprint $table) {
+            $table->id(); $table->foreignId('category_id')->constrained()->cascadeOnDelete(); $table->string('locale', 5); $table->string('name'); $table->text('description')->nullable(); $table->string('meta_title')->nullable(); $table->string('meta_description')->nullable(); $table->unique(['category_id','locale']);
+        });
+        Schema::create('collections', function (Blueprint $table) {
+            $table->id(); $table->foreignId('store_id')->constrained()->cascadeOnDelete(); $table->string('slug'); $table->boolean('is_active')->default(true); $table->timestamps(); $table->unique(['store_id','slug']);
+        });
+        Schema::create('products', function (Blueprint $table) {
+            $table->id(); $table->foreignId('store_id')->constrained()->cascadeOnDelete(); $table->foreignId('category_id')->nullable()->constrained()->nullOnDelete(); $table->string('slug'); $table->string('sku')->nullable(); $table->decimal('price', 12, 2); $table->unsignedInteger('stock')->default(0); $table->boolean('is_active')->default(true); $table->timestamps(); $table->unique(['store_id','slug']); $table->unique(['store_id','sku']); $table->index(['store_id','is_active']);
+        });
+        Schema::create('product_translations', function (Blueprint $table) {
+            $table->id(); $table->foreignId('product_id')->constrained()->cascadeOnDelete(); $table->string('locale', 5); $table->string('name'); $table->longText('description')->nullable(); $table->string('meta_title')->nullable(); $table->string('meta_description')->nullable(); $table->unique(['product_id','locale']);
+        });
+        Schema::create('product_images', function (Blueprint $table) {
+            $table->id(); $table->foreignId('product_id')->constrained()->cascadeOnDelete(); $table->string('path'); $table->string('alt')->nullable(); $table->unsignedInteger('sort_order')->default(0); $table->boolean('is_primary')->default(false); $table->timestamps();
+        });
+        Schema::create('collection_product', function (Blueprint $table) { $table->foreignId('collection_id')->constrained()->cascadeOnDelete(); $table->foreignId('product_id')->constrained()->cascadeOnDelete(); $table->primary(['collection_id','product_id']); });
+        Schema::create('carts', function (Blueprint $table) { $table->id(); $table->foreignId('store_id')->constrained()->cascadeOnDelete(); $table->foreignId('user_id')->nullable()->constrained()->cascadeOnDelete(); $table->uuid('guest_token')->nullable()->unique(); $table->timestamps(); });
+        Schema::create('cart_items', function (Blueprint $table) { $table->id(); $table->foreignId('cart_id')->constrained()->cascadeOnDelete(); $table->foreignId('product_id')->constrained()->restrictOnDelete(); $table->unsignedInteger('quantity'); $table->unique(['cart_id','product_id']); });
+        Schema::create('addresses', function (Blueprint $table) { $table->id(); $table->foreignId('user_id')->constrained()->cascadeOnDelete(); $table->string('name'); $table->string('phone'); $table->string('line1'); $table->string('line2')->nullable(); $table->string('city'); $table->string('country', 2); $table->string('postal_code')->nullable(); $table->boolean('is_default')->default(false); $table->timestamps(); });
+        Schema::create('shipping_methods', function (Blueprint $table) { $table->id(); $table->foreignId('store_id')->constrained()->cascadeOnDelete(); $table->string('name'); $table->decimal('price',12,2); $table->boolean('is_active')->default(true); $table->timestamps(); });
+        Schema::create('orders', function (Blueprint $table) { $table->id(); $table->foreignId('store_id')->constrained()->cascadeOnDelete(); $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete(); $table->foreignId('shipping_method_id')->nullable()->constrained()->nullOnDelete(); $table->string('number')->unique(); $table->string('status')->default('pending')->index(); $table->string('currency',3); $table->decimal('subtotal',12,2); $table->decimal('discount_total',12,2)->default(0); $table->decimal('shipping_total',12,2)->default(0); $table->decimal('total',12,2); $table->json('shipping_address'); $table->timestamps(); });
+        Schema::create('order_items', function (Blueprint $table) { $table->id(); $table->foreignId('order_id')->constrained()->cascadeOnDelete(); $table->foreignId('product_id')->nullable()->constrained()->nullOnDelete(); $table->string('name'); $table->string('sku')->nullable(); $table->decimal('unit_price',12,2); $table->unsignedInteger('quantity'); $table->decimal('line_total',12,2); });
+        Schema::create('payments', function (Blueprint $table) { $table->id(); $table->foreignId('order_id')->constrained()->cascadeOnDelete(); $table->decimal('amount',12,2); $table->string('currency',3); $table->string('gateway'); $table->string('payment_method')->nullable(); $table->string('status')->default('unpaid')->index(); $table->string('transaction_reference')->unique(); $table->string('gateway_reference')->nullable()->index(); $table->timestamp('paid_at')->nullable(); $table->json('gateway_metadata')->nullable(); $table->timestamps(); });
+        Schema::create('coupons', function (Blueprint $table) { $table->id(); $table->foreignId('store_id')->constrained()->cascadeOnDelete(); $table->string('code'); $table->string('discount_type'); $table->decimal('discount_amount',12,2); $table->decimal('minimum_order',12,2)->nullable(); $table->unsignedInteger('usage_limit')->nullable(); $table->unsignedInteger('used_count')->default(0); $table->timestamp('starts_at')->nullable(); $table->timestamp('expires_at')->nullable(); $table->boolean('is_active')->default(true); $table->timestamps(); $table->unique(['store_id','code']); });
+        Schema::create('reviews', function (Blueprint $table) { $table->id(); $table->foreignId('product_id')->constrained()->cascadeOnDelete(); $table->foreignId('user_id')->constrained()->cascadeOnDelete(); $table->unsignedTinyInteger('rating'); $table->text('comment')->nullable(); $table->string('status')->default('pending'); $table->timestamps(); $table->unique(['product_id','user_id']); });
+        Schema::create('wishlists', function (Blueprint $table) { $table->id(); $table->foreignId('user_id')->constrained()->cascadeOnDelete(); $table->foreignId('product_id')->constrained()->cascadeOnDelete(); $table->timestamps(); $table->unique(['user_id','product_id']); });
+        Schema::create('invitations', function (Blueprint $table) { $table->id(); $table->foreignId('store_id')->constrained()->cascadeOnDelete(); $table->string('invited_email'); $table->string('token_hash', 64)->unique(); $table->string('type'); $table->foreignId('created_by')->constrained('users')->cascadeOnDelete(); $table->string('status')->default('pending')->index(); $table->timestamp('expires_at'); $table->timestamp('accepted_at')->nullable(); $table->foreignId('approved_by')->nullable()->constrained('users')->nullOnDelete(); $table->timestamp('approved_at')->nullable(); $table->timestamp('rejected_at')->nullable(); $table->timestamp('revoked_at')->nullable(); $table->timestamps(); $table->index(['store_id','invited_email']); });
+    }
+    public function down(): void { Schema::dropIfExists('invitations'); Schema::dropIfExists('wishlists'); Schema::dropIfExists('reviews'); Schema::dropIfExists('coupons'); Schema::dropIfExists('payments'); Schema::dropIfExists('order_items'); Schema::dropIfExists('orders'); Schema::dropIfExists('shipping_methods'); Schema::dropIfExists('addresses'); Schema::dropIfExists('cart_items'); Schema::dropIfExists('carts'); Schema::dropIfExists('collection_product'); Schema::dropIfExists('product_images'); Schema::dropIfExists('product_translations'); Schema::dropIfExists('products'); Schema::dropIfExists('collections'); Schema::dropIfExists('category_translations'); Schema::dropIfExists('categories'); Schema::table('users', fn(Blueprint $table) => $table->dropForeign(['store_id'])); Schema::dropIfExists('stores'); }
+};
