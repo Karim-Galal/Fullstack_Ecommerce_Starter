@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsureFrontendRequestsAreStateful;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Laravel\Sanctum\Http\Middleware\AuthenticateSession;
@@ -82,6 +83,7 @@ return [
         'authenticate_session' => AuthenticateSession::class,
         'encrypt_cookies' => EncryptCookies::class,
         'validate_csrf_token' => ValidateCsrfToken::class,
+        'stateful' => EnsureFrontendRequestsAreStateful::class,
     ],
 
 ];

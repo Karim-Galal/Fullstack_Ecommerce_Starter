@@ -15,11 +15,14 @@ class SendOrderConfirmation implements ShouldQueue
     use InteractsWithQueue;
     use Queueable;
     use SerializesModels;
+
     public int $tries = 3;
-    public array $backoff = [30,120,300];
-    public function __construct(public int $orderId)
-    {
-    }public function handle(): void
+
+    public array $backoff = [30, 120, 300];
+
+    public function __construct(public int $orderId) {}
+
+    public function handle(): void
     {
         Log::info('Order confirmation queued', ['order_id' => $this->orderId]);
     }

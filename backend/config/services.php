@@ -1,9 +1,9 @@
 <?php
 
 return [
-    'google' => ['client_id'=>env('GOOGLE_CLIENT_ID'),'client_secret'=>env('GOOGLE_CLIENT_SECRET'),'redirect'=>env('GOOGLE_REDIRECT_URI')],
-    'stripe' => ['key'=>env('STRIPE_KEY'),'secret'=>env('STRIPE_SECRET'),'webhook_secret'=>env('STRIPE_WEBHOOK_SECRET')],
-    'paymob' => ['api_key'=>env('PAYMOB_API_KEY'),'hmac_secret'=>env('PAYMOB_HMAC_SECRET'),'webhook_secret'=>env('PAYMOB_WEBHOOK_SECRET')],
+    'google' => ['client_id' => env('GOOGLE_CLIENT_ID'), 'client_secret' => env('GOOGLE_CLIENT_SECRET'), 'redirect' => env('GOOGLE_REDIRECT_URI')],
+    'stripe' => ['key' => env('STRIPE_KEY'), 'secret' => env('STRIPE_SECRET'), 'webhook_secret' => env('STRIPE_WEBHOOK_SECRET')],
+    'paymob' => ['api_key' => env('PAYMOB_API_KEY'), 'hmac_secret' => env('PAYMOB_HMAC_SECRET'), 'webhook_secret' => env('PAYMOB_WEBHOOK_SECRET')],
 
     /*
     |--------------------------------------------------------------------------
