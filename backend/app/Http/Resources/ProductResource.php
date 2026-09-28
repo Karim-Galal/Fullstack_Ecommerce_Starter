@@ -1,0 +1,30 @@
+<?php
+
+namespace App\Http\Resources;
+
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
+
+// class ProductResource extends JsonResource
+// {
+//     public function toArray(Request $request): array
+//     {
+//         return [
+//             'id' => $this->id,
+//             'slug' => $this->slug,
+//             'sku' => $this->sku,
+//             'price' => $this->price,
+//             'stock' => $this->stock,
+//             'is_active' => $this->is_active,
+//             'category' => CategoryResource::make($this->whenLoaded('category')),
+//             'translations' => ProductTranslationResource::collection(
+//                 $this->whenLoaded('translations')
+//             ),
+//             'images' => ProductImageResource::collection(
+//                 $this->whenLoaded('images')
+//             ),
+//             'created_at' => $this->created_at,
+//             'updated_at' => $this->updated_at,
+//         ];
+//     }
+// }

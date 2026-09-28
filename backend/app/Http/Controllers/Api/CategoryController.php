@@ -3,75 +3,149 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreCategoryRequest;
+use App\Http\Requests\UpdateCategoryRequest;
+use App\Http\Resources\CategoryResource;
 use App\Models\Category;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class CategoryController extends Controller
 {
-    public function index(Request $r)
+    public function index()
     {
-        return Category::whereNull('parent_id')->where('is_active', true)->with('children.translations', 'translations')->orderBy('sort_order')->get();
+        $categories = Category::whereNull('parent_id')
+            ->where('is_active', true)
+            ->with([
+                'translations',
+                'children.translations',
+            ])
+            ->orderBy('sort_order')
+            ->get();
+
+        return CategoryResource::collection($categories);
     }
 
-    public function adminIndex(Request $r)
+    public function adminIndex()
     {
         $this->authorize('viewAny', Category::class);
 
-        return Category::with('translations', 'children')->get();
+        $categories = Category::with([
+            'translations',
+            'children.translations',
+        ])
+            ->orderBy('sort_order')
+            ->get();
+
+        return CategoryResource::collection($categories);
     }
 
-    public function store(Request $r)
+    public function store(StoreCategoryRequest $request)
     {
         $this->authorize('create', Category::class);
-        $d = $r->validate([
-            'slug' => 'required|alpha_dash',
-            'parent_id' => 'nullable|integer',
-            'is_active' => 'boolean',
-            'translations' => 'required|array',
-            'translations.*.locale' => 'required|in:en,ar',
-            'translations.*.name' => 'required|max:255',
-        ]);
-        $this->validateParent($d['parent_id'] ?? null);
-        $c = Category::create(collect($d)->except('translations')->all());
-        $c->translations()->createMany($d['translations']);
 
-        return response()->json($c->load('translations'), 201);
+        $categoryData = $request->validated();
+
+        $this->validateParent($categoryData['parent_id'] ?? null);
+
+        $category = DB::transaction(function () use ($categoryData) {
+            $category = Category::create(
+                collect($categoryData)
+                    ->except('translations')
+                    ->all()
+            );
+
+            $category->translations()->createMany(
+                $categoryData['translations']
+            );
+
+            return $category;
+        });
+
+        return (new CategoryResource(
+            $category->load('translations')
+        ))->response()->setStatusCode(201);
     }
 
-    public function update(Request $r, Category $category)
-    {
+    public function update(
+        UpdateCategoryRequest $request,
+        Category $category
+    ) {
         $this->authorize('update', $category);
-        $d = $r->validate([
-            'slug' => 'sometimes|alpha_dash',
-            'parent_id' => 'nullable|integer',
-            'is_active' => 'boolean',
-            'sort_order' => 'integer',
-        ]);
-        if (array_key_exists('parent_id', $d)) {
-            $this->validateParent($d['parent_id'], $category);
-        }
-        $category->update($d);
 
-        return $category;
+        $categoryData = $request->validated();
+
+        if (array_key_exists('parent_id', $categoryData)) {
+            $this->validateParent(
+                $categoryData['parent_id'],
+                $category
+            );
+        }
+
+        $category = DB::transaction(function () use ($category, $categoryData) {
+            $translations = $categoryData['translations'] ?? null;
+
+            $category->update(
+                collect($categoryData)
+                    ->except('translations')
+                    ->all()
+            );
+
+            if ($translations !== null) {
+                foreach ($translations as $translation) {
+                    $category->translations()->updateOrCreate(
+                        ['locale' => $translation['locale']],
+                        [
+                            'name' => $translation['name'],
+                            'description' => $translation['description'] ?? null,
+                            'meta_title' => $translation['meta_title'] ?? null,
+                            'meta_description' => $translation['meta_description'] ?? null,
+                        ]
+                    );
+                }
+            }
+
+            return $category;
+        });
+
+        return new CategoryResource(
+            $category->load('translations')
+        );
     }
 
     public function destroy(Category $category)
     {
         $this->authorize('delete', $category);
+
         $category->delete();
 
         return response()->noContent();
     }
 
-    private function validateParent(?int $id, ?Category $category = null): void
-    {
-        if ($id === null) {
+    private function validateParent(
+        ?int $parentId,
+        ?Category $category = null
+    ): void {
+        if ($parentId === null) {
             return;
         }
-        $parent = Category::findOrFail($id);
-        abort_if($category && $parent->id === $category->id, 422, 'A category cannot be its own parent.');
+
+        $parent = Category::findOrFail($parentId);
+
+        if ($category && $parent->id === $category->id) {
+            abort(
+                422,
+                'A category cannot be its own parent.'
+            );
+        }
+
         while ($category && $parent) {
-            abort_if($parent->id === $category->id, 422, 'Category hierarchy cannot contain a cycle.');
+            if ($parent->id === $category->id) {
+                abort(
+                    422,
+                    'Category hierarchy cannot contain a cycle.'
+                );
+            }
+
             $parent = $parent->parent;
         }
     }

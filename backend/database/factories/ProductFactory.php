@@ -3,32 +3,19 @@
 namespace Database\Factories;
 
 use App\Models\Category;
-use App\Models\Product;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
 
-/**
- * @extends Factory<Product>
- */
 class ProductFactory extends Factory
 {
-    /**
-     * The name of the factory's corresponding model.
-     *
-     * @var string
-     */
-    protected $model = Product::class;
-
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
     public function definition(): array
     {
+        $name = fake()->unique()->words(3, true);
+
         return [
             'category_id' => Category::factory(),
-            'slug' => fake()->unique()->slug(),
-            'sku' => fake()->unique()->bothify('SKU-####'),
+            'slug' => Str::slug($name),
+            'sku' => 'SKU-'.fake()->unique()->numberBetween(10000, 99999),
             'price' => fake()->randomFloat(2, 10, 1000),
             'stock' => fake()->numberBetween(0, 100),
             'is_active' => true,
