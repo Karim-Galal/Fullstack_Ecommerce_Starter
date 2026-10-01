@@ -8,7 +8,7 @@ use App\Http\Requests\UpdateCategoryRequest;
 use App\Http\Resources\CategoryResource;
 use App\Models\Category;
 use Illuminate\Support\Facades\DB;
-
+use Illuminate\Support\Str;
 class CategoryController extends Controller
 {
     public function index()
@@ -39,6 +39,19 @@ class CategoryController extends Controller
         return CategoryResource::collection($categories);
     }
 
+    public function adminShow(Category $category)
+    {
+        $this->authorize('view', $category);
+
+        return new CategoryResource(
+            $category->load([
+                'translations',
+                'children.translations',
+                'parent.translations',
+            ])
+        );
+    }
+
     public function store(StoreCategoryRequest $request)
     {
         $this->authorize('create', Category::class);
@@ -46,17 +59,19 @@ class CategoryController extends Controller
         $categoryData = $request->validated();
 
         $this->validateParent($categoryData['parent_id'] ?? null);
-
         $category = DB::transaction(function () use ($categoryData) {
-            $category = Category::create(
-                collect($categoryData)
-                    ->except('translations')
-                    ->all()
-            );
+            $translations = $categoryData['translations'];
 
-            $category->translations()->createMany(
-                $categoryData['translations']
-            );
+            $slugSource = $this->getSlugSource($translations);
+
+            $category = Category::create([
+                ...collect($categoryData)
+                    ->except('translations', 'slug')
+                    ->all(),
+                'slug' => Str::slug($slugSource),
+            ]);
+
+            $category->translations()->createMany($translations);
 
             return $category;
         });
@@ -66,10 +81,8 @@ class CategoryController extends Controller
         ))->response()->setStatusCode(201);
     }
 
-    public function update(
-        UpdateCategoryRequest $request,
-        Category $category
-    ) {
+    public function update(UpdateCategoryRequest $request,Category $category)
+    {
         $this->authorize('update', $category);
 
         $categoryData = $request->validated();
@@ -83,6 +96,12 @@ class CategoryController extends Controller
 
         $category = DB::transaction(function () use ($category, $categoryData) {
             $translations = $categoryData['translations'] ?? null;
+
+            if ($translations !== null) {
+                $slugSource = $this->getSlugSource($translations);
+
+                $categoryData['slug'] = Str::slug($slugSource);
+            }
 
             $category->update(
                 collect($categoryData)
@@ -148,5 +167,16 @@ class CategoryController extends Controller
 
             $parent = $parent->parent;
         }
+    }
+
+    private function getSlugSource(array $translations): string
+    {
+        foreach ($translations as $translation) {
+            if ($translation['locale'] === 'en') {
+                return $translation['name'];
+            }
+        }
+
+        return $translations[0]['name'];
     }
 }

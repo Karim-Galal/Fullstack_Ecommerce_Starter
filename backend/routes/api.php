@@ -49,14 +49,18 @@ Route::prefix('v1')->group(function () {
         Route::post('checkout', [CheckoutController::class, 'store']);
 
         Route::prefix('admin')->group(function () {
-            Route::get('products', [ProductController::class, 'adminIndex']);
+            Route::get('products', [ProductController::class, 'adminIndex'])
+            ->withTrashed();
             Route::get('products/{product}', [ProductController::class, 'adminShow'])
             ->withTrashed();
             Route::post('products', [ProductController::class, 'store']);
             Route::patch('products/{product}', [ProductController::class, 'update']);
             Route::delete('products/{product}', [ProductController::class, 'destroy']);
 
-            Route::get('categories', [CategoryController::class, 'adminIndex']);
+            Route::get('categories', [CategoryController::class, 'adminIndex'])
+            ->withTrashed();
+            Route::get('categories/{category}', [CategoryController::class, 'adminShow'])
+            ->withTrashed();
             Route::post('categories', [CategoryController::class, 'store']);
             Route::patch('categories/{category}', [CategoryController::class, 'update']);
             Route::delete('categories/{category}', [CategoryController::class, 'destroy']);
