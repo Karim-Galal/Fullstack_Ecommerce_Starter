@@ -275,3 +275,60 @@ Custom middleware extending Sanctum's base that only starts session for SPA requ
 
 ### Status
 Accepted and implemented. Tests pass for both SPA and token authentication.
+
+---
+
+## ADR-010: Soft Deletes for Business Entities (2026-09-28)
+
+### Decision
+Implement Laravel Soft Deletes on selected business entities to preserve audit trail and historical data while keeping normal queries clean.
+
+### Context
+The application initially used hard deletes for all entities. However, several entities represent business records that must be preserved for audit, legal, or historical purposes even after "deletion" from the active catalog.
+
+### Entities with Soft Deletes
+| Entity | Reason |
+|--------|--------|
+| Product | Referenced by historical orders; must remain accessible for order history |
+| Category | Hierarchical structure; products reference it; historical reference |
+| Collection | Curated product groups; may need history |
+| Offer | Promotional campaigns with historical value |
+| Review | User-generated content with historical value |
+| Order | Financial records; must be preserved for legal/accounting |
+| Invoice | Legal/financial documents |
+| Payment | Financial transaction records |
+| User | Account history; orders/invoices reference it |
+| Address | Order history references it |
+
+### Entities Without Soft Deletes
+| Entity | Reason |
+|--------|--------|
+| CartItem | Session/temporary; no historical value |
+| OrderItem | Already preserves historical snapshot (name, sku, unit_price, line_total) |
+| Translation tables | Tied to parent entity lifecycle |
+| Pivot tables (collection_product, offer_products, wishlists) | Simple relationships |
+| Cart | Session/temporary |
+| ProductImage | Tied to product lifecycle |
+| Coupon | Deactivation via `is_active` is sufficient |
+| ShippingMethod | Deactivation via `is_active` is sufficient |
+| PaymentWebhookEvents | Idempotency tracking |
+| PushSubscription | Session-like, can be deleted |
+| Notification | Notification system handles lifecycle |
+| Invitation | Status field manages lifecycle |
+
+### Behavior
+- Normal Eloquent queries automatically exclude soft-deleted records
+- Soft-deleted products/categories/offers do not appear in storefront catalog queries
+- Historical records (Orders, OrderItems, Invoices, Payments, Reviews) maintain access to soft-deleted related records via `withTrashed()` on specific relationships
+- The `destroy()` method in controllers performs soft delete via `$model->delete()`
+- No hard delete or restore endpoints are exposed in the API
+
+### Relationships with `withTrashed()`
+- `OrderItem::product()` - Access product for historical order display
+- `Order::user()` - Access user for order history
+- `Invoice::order()` - Access order for invoice history
+- `Payment::order()` - Access order for payment history
+- `Review::product()` and `Review::user()` - Access deleted product/user for review history
+
+### Status
+Accepted and implemented. Migrations created, models updated, tests passing.

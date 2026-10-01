@@ -12,6 +12,11 @@ class ProductPolicy
         return $user->canAdmin('products.view');
     }
 
+    public function view(User $user, Product $product): bool
+    {
+        return $user->canAdmin('products.view');
+    }
+
     public function create(User $user): bool
     {
         return $user->canAdmin('products.create');

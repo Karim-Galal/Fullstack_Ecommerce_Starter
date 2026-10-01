@@ -1,7 +1,7 @@
 # Database Schema
 
 ## Overview
-Single-store ecommerce database. All tables use `unsignedBigInteger` foreign keys with cascade delete. No soft deletes. No `store_id` columns.
+Single-store ecommerce database. All tables use `unsignedBigInteger` foreign keys with cascade delete. No `store_id` columns. Selected tables use Soft Deletes for audit trail and historical data preservation.
 
 ## Entity Relationship Diagram
 
@@ -162,6 +162,7 @@ Other tables:
 | approved_at | timestamp | nullable |
 | approved_by | unsignedBigInteger | nullable, FK users.id nullOnDelete |
 | remember_token | string(100) | nullable |
+| deleted_at | timestamp | nullable |
 | created_at | timestamp | |
 | updated_at | timestamp | |
 
@@ -176,6 +177,7 @@ Other tables:
 | slug | string(255) | UQ |
 | is_active | boolean | default: true |
 | sort_order | unsignedInteger | default: 0 |
+| deleted_at | timestamp | nullable |
 | created_at | timestamp | |
 | updated_at | timestamp | |
 
@@ -189,6 +191,7 @@ Other tables:
 | price | decimal(12,2) | |
 | stock | unsignedInteger | default: 0 |
 | is_active | boolean | default: true |
+| deleted_at | timestamp | nullable |
 | created_at | timestamp | |
 | updated_at | timestamp | |
 
@@ -198,6 +201,7 @@ Other tables:
 | id | unsignedBigInteger | PK, AI |
 | slug | string(255) | UQ |
 | is_active | boolean | default: true |
+| deleted_at | timestamp | nullable |
 | created_at | timestamp | |
 | updated_at | timestamp | |
 
@@ -224,6 +228,7 @@ Other tables:
 | shipping_total | decimal(12,2) | default: 0 |
 | total | decimal(12,2) | |
 | shipping_address | json | |
+| deleted_at | timestamp | nullable |
 | created_at | timestamp | |
 | updated_at | timestamp | |
 
@@ -241,6 +246,7 @@ Other tables:
 | gateway_reference | string(100) | nullable, index |
 | paid_at | timestamp | nullable |
 | gateway_metadata | json | nullable |
+| deleted_at | timestamp | nullable |
 | created_at | timestamp | |
 | updated_at | timestamp | |
 
@@ -257,6 +263,7 @@ Other tables:
 | shipping_total | decimal(12,2) | default: 0 |
 | total | decimal(12,2) | |
 | issued_at | timestamp | nullable |
+| deleted_at | timestamp | nullable |
 | created_at | timestamp | |
 | updated_at | timestamp | |
 
@@ -272,6 +279,7 @@ Other tables:
 | starts_at | timestamp | nullable |
 | ends_at | timestamp | nullable |
 | is_active | boolean | default: true |
+| deleted_at | timestamp | nullable |
 | created_at | timestamp | |
 | updated_at | timestamp | |
 
@@ -323,6 +331,7 @@ Other tables:
 | rating | unsignedTinyInteger | |
 | comment | text | nullable |
 | status | string(50) | default: 'pending' |
+| deleted_at | timestamp | nullable |
 | created_at | timestamp | |
 | updated_at | timestamp | |
 | UQ(product_id, user_id) | | |
@@ -360,6 +369,7 @@ Other tables:
 | country | string(2) | |
 | postal_code | string(20) | nullable |
 | is_default | boolean | default: false |
+| deleted_at | timestamp | nullable |
 | created_at | timestamp | |
 | updated_at | timestamp | |
 
@@ -407,22 +417,22 @@ Other tables:
 | UQ(gateway, event_id) | | |
 
 ## Indexes
-- `users`: email (UQ), role, status, google_id (UQ)
-- `categories`: slug (UQ), parent_id
-- `products`: slug (UQ), sku (UQ), category_id, is_active
-- `collections`: slug (UQ)
+- `users`: email (UQ), role, status, google_id (UQ), deleted_at
+- `categories`: slug (UQ), parent_id, deleted_at
+- `products`: slug (UQ), sku (UQ), category_id, is_active, deleted_at
+- `collections`: slug (UQ), deleted_at
 - `carts`: user_id, guest_token (UQ)
-- `orders`: number (UQ), status, user_id
-- `payments`: transaction_reference (UQ), gateway_reference, status, order_id
-- `invoices`: order_id (UQ), number (UQ)
-- `offers`: is_active
+- `orders`: number (UQ), status, user_id, deleted_at
+- `payments`: transaction_reference (UQ), gateway_reference, status, order_id, deleted_at
+- `invoices`: order_id (UQ), number (UQ), deleted_at
+- `offers`: is_active, deleted_at
 - `offer_products`: UQ(offer_id, product_id)
 - `push_subscriptions`: UQ(user_id, endpoint)
 - `coupons`: code (UQ)
-- `reviews`: UQ(product_id, user_id)
+- `reviews`: UQ(product_id, user_id), deleted_at
 - `wishlists`: UQ(user_id, product_id)
 - `shipping_methods`: is_active
-- `addresses`: user_id
+- `addresses`: user_id, deleted_at
 - `invitations`: token_hash (UQ), status, created_by, invited_email
 - `notifications`: notifiable_type + notifiable_id (morphs)
 
@@ -454,3 +464,13 @@ Other tables:
 24. `2026_09_25_182732_create_push_subscriptions_table.php`
 25. `2026_09_25_182911_create_notifications_table.php`
 26. `2026_09_06_112215_create_personal_access_tokens_table.php`
+27. `2026_09_28_092321_add_deleted_at_to_products_table.php`
+28. `2026_09_28_092336_add_deleted_at_to_categories_table.php`
+29. `2026_09_28_092454_add_deleted_at_to_collections_table.php`
+29. `2026_09_28_092510_add_deleted_at_to_offers_table.php`
+30. `2026_09_28_092524_add_deleted_at_to_reviews_table.php`
+31. `2026_09_28_092541_add_deleted_at_to_orders_table.php`
+32. `2026_09_28_092605_add_deleted_at_to_invoices_table.php`
+33. `2026_09_28_092621_add_deleted_at_to_payments_table.php`
+34. `2026_09_28_092638_add_deleted_at_to_users_table.php`
+35. `2026_09_28_092707_add_deleted_at_to_addresses_table.php`

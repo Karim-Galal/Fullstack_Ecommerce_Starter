@@ -13,22 +13,15 @@ return new class extends Migration
     {
         Schema::create('push_subscriptions', function (Blueprint $table) {
             $table->id();
-
             $table->foreignId('user_id')
                 ->constrained()
                 ->cascadeOnDelete();
-
-            $table->text('endpoint');
-
+            $table->string('endpoint', 2048);
             $table->text('public_key');
-
             $table->text('auth_token');
-
             $table->string('content_encoding')->nullable();
-
             $table->timestamps();
-
-            $table->unique(['user_id', 'endpoint']);
+            // $table->unique(['user_id', 'endpoint']);
         });
     }
 

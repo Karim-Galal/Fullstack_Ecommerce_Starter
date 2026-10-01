@@ -5,14 +5,14 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class ProductTranslation extends Model
+class CategoryTranslation extends Model
 {
     public $timestamps = false;
 
     protected $fillable = ['locale', 'name', 'description', 'meta_title', 'meta_description'];
 
-    public function product(): BelongsTo
+    public function category(): BelongsTo
     {
-        return $this->belongsTo(Product::class);
+        return $this->belongsTo(Category::class);
     }
 }

@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Validation\ValidationException;
+use Laravel\Sanctum\PersonalAccessToken;
 
 class AuthController extends Controller
 {
@@ -31,6 +32,20 @@ class AuthController extends Controller
 
         $user->sendEmailVerificationNotification();
 
+        if ($request->device_name) {
+            $token = $user->createToken($request->device_name)->plainTextToken;
+
+            return response()->json([
+                'message' => 'Registration successful. Please verify your email address.',
+                'user' => new UserResource($user),
+                'token' => $token,
+            ], 201);
+        }
+
+        Auth::login($user);
+
+        $request->session()->regenerate();
+
         return response()->json([
             'message' => 'Registration successful. Please verify your email address.',
             'user' => new UserResource($user),
@@ -43,7 +58,7 @@ class AuthController extends Controller
 
         if (! Auth::attempt($credentials)) {
             throw ValidationException::withMessages([
-                'email' => ['The provided credentials are incorrect.'],
+                'message' => ['The provided credentials are incorrect.'],
             ]);
         }
 
@@ -73,22 +88,22 @@ class AuthController extends Controller
     public function logout(Request $request)
     {
         $user = $request->user();
+        $currentToken = $user->currentAccessToken();
 
-        // Delete current access token if using token authentication
-        if ($user->currentAccessToken()) {
-            $user->currentAccessToken()->delete();
+        if ($currentToken instanceof PersonalAccessToken) {
+            $currentToken->delete();
         }
 
-        // Logout from web guard (SPA session)
         Auth::guard('web')->logout();
 
-        // Invalidate session only for web guard
         if ($request->hasSession()) {
             $request->session()->invalidate();
             $request->session()->regenerateToken();
         }
 
-        return response()->json(['message' => 'Logged out successfully']);
+        return response()->json([
+            'message' => 'Logged out successfully',
+        ]);
     }
 
     public function me(Request $request)

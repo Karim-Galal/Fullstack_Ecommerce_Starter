@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\GoogleAuthController;
 use App\Http\Controllers\Api\InvitationController;
 use App\Http\Controllers\Api\PaymentWebhookController;
 use App\Http\Controllers\Api\ProductController;
+use App\Http\Controllers\Api\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('v1/payments/{gateway}/webhook', [PaymentWebhookController::class, 'handle'])->middleware('throttle:60,1');
@@ -39,21 +40,35 @@ Route::prefix('v1')->group(function () {
     });
 
     Route::middleware('auth:sanctum')->group(function () {
+
         Route::get('auth/me', [AuthController::class, 'me']);
         Route::post('auth/logout', [AuthController::class, 'logout']);
         Route::post('auth/tokens', [AuthController::class, 'createToken']);
         Route::get('auth/tokens', [AuthController::class, 'tokens']);
         Route::delete('auth/tokens/{token}', [AuthController::class, 'revokeToken']);
         Route::post('checkout', [CheckoutController::class, 'store']);
+
         Route::prefix('admin')->group(function () {
             Route::get('products', [ProductController::class, 'adminIndex']);
+            Route::get('products/{product}', [ProductController::class, 'adminShow'])
+            ->withTrashed();
             Route::post('products', [ProductController::class, 'store']);
             Route::patch('products/{product}', [ProductController::class, 'update']);
             Route::delete('products/{product}', [ProductController::class, 'destroy']);
+
             Route::get('categories', [CategoryController::class, 'adminIndex']);
             Route::post('categories', [CategoryController::class, 'store']);
             Route::patch('categories/{category}', [CategoryController::class, 'update']);
             Route::delete('categories/{category}', [CategoryController::class, 'destroy']);
+
+            Route::get('users', [UserController::class, 'index']);
+            Route::get('users/{user}', [UserController::class, 'show']);
+            Route::post('users', [UserController::class, 'store']);
+            Route::patch('users/{user}', [UserController::class, 'update']);
+            Route::delete('users/{user}', [UserController::class, 'destroy']);
+            Route::patch('users/{user}/activate', [UserController::class, 'activate']);
+            Route::patch('users/{user}/deactivate', [UserController::class, 'deactivate']);
+
             Route::get('invitations', [InvitationController::class, 'index']);
             Route::post('invitations', [InvitationController::class, 'store']);
             Route::post('invitations/{invitation}/approve', [InvitationController::class, 'approve']);

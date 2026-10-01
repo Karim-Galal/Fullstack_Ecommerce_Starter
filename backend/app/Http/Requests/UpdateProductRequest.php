@@ -25,6 +25,8 @@ class UpdateProductRequest extends FormRequest
             'translations.*.locale' => ['required', 'string', 'in:en,ar', 'distinct'],
             'translations.*.name' => ['required', 'string', 'max:255'],
             'translations.*.description' => ['nullable', 'string'],
+            'translations.*.meta_title' => ['nullable', 'string', 'max:255'],
+            'translations.*.meta_description' => ['nullable', 'string'],
         ];
     }
 }

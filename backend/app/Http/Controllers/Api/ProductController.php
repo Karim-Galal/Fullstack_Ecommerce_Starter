@@ -20,21 +20,19 @@ class ProductController extends Controller
 
     public function show(string $identifier)
     {
-        $productId = (int) Str::afterLast($identifier, '-');
-        $slug = Str::beforeLast($identifier, '-');
-
         return Product::with([
             'translations',
             'images',
             'category.translations',
         ])
-            ->where([
-                'id' => $productId,
-                'slug' => $slug,
-                'is_active' => true,
-            ])
+            ->where(function ($query) use ($identifier) {
+                $query->where('id', $identifier)
+                    ->orWhere('slug', $identifier);
+            })
+            ->where('is_active', true)
             ->firstOrFail();
     }
+
 
     public function adminIndex()
     {
@@ -42,6 +40,18 @@ class ProductController extends Controller
 
         return Product::with(['translations', 'images'])
             ->paginate(30);
+    }
+
+    public function adminShow(Product $product)
+    {
+        $this->authorize('view', $product);
+
+        return $product->load([
+            'translations',
+            'images',
+            'category',
+            'category.translations',
+        ]);
     }
 
     public function store(StoreProductRequest $request)
@@ -100,6 +110,8 @@ class ProductController extends Controller
                         [
                             'name' => $translationData['name'],
                             'description' => $translationData['description'] ?? null,
+                            'meta_title' => $translationData['meta_title'] ?? null,
+                            'meta_description' => $translationData['meta_description'] ?? null,
                         ]
                     );
                 }

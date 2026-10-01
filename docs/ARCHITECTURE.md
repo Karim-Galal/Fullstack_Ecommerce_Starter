@@ -163,11 +163,31 @@ refunded → (terminal)
 - Skips session for requests with Bearer token
 - Checks Origin/Referer headers for SPA detection
 
-## Future Considerations
-- Image processing pipeline (validation, resize, compress, WebP, variants)
-- Redis caching for product/category queries
-- Queue workers for emails, webhooks, confirmations
-- API rate limiting per user/IP
-- Admin panel with Laravel-based UI or separate Next.js admin app
-- Realtime notifications via Laravel Reverb
-- Browser push notifications via Web Push protocol
+## Soft Deletes
+
+The following entities use Laravel's Soft Deletes for audit trail and historical data preservation:
+
+- **Product** - Catalog items that may be referenced by historical orders
+- **Category** - Hierarchical catalog structure referenced by products
+- **Collection** - Curated product groups
+- **Offer** - Promotional campaigns with historical value
+- **Review** - User-generated content with historical value
+- **Order** - Financial records that must be preserved for legal/accounting
+- **Invoice** - Legal/financial documents
+- **Payment** - Financial transaction records
+- **User** - Account history, orders/invoices reference it
+- **Address** - Order history references it
+
+**Behavior:**
+- Normal Eloquent queries automatically exclude soft-deleted records
+- Soft-deleted products/categories/offers do not appear in storefront catalog queries
+- Historical records (Orders, OrderItems, Invoices, Payments, Reviews) maintain access to soft-deleted related records via `withTrashed()` on relationships
+- The `destroy()` method in controllers performs soft delete via `$model->delete()`
+- No hard delete or restore endpoints are exposed in the API
+
+**Relationships with `withTrashed()`:**
+- `OrderItem::product()` - Access product for historical order display
+- `Order::user()` - Access user for order history
+- `Invoice::order()` - Access order for invoice history
+- `Payment::order()` - Access order for payment history
+- `Review::product()` and `Review::user()` - Access deleted product/user for review history
