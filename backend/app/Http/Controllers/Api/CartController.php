@@ -24,53 +24,66 @@ class CartController extends Controller
             ]);
         }
 
-        $cart->load('items');
+        $cart->load('items.product');
 
         return $this->cartResponse($cart);
     }
 
     public function add(StoreCartItemRequest $request)
     {
-        $cart = DB::transaction(function () use ($request) {
-            $cart = $this->findCart($request);
+        $cart = $this->findCart($request);
 
-            if (! $cart) {
-                $cart = $this->createCart($request);
-            }
+        if (! $cart) {
+            $cart = $this->createCart($request);
+        }
 
-            $product = Product::findOrFail(
-                $request->validated('product_id')
-            );
+        $product = Product::where('id', $request->validated('product_id'))
+            ->where('is_active', true)
+            ->first();
 
-            $quantity = $request->validated('quantity');
+        if (! $product) {
+            return response()->json([
+                'message' => 'Product not found or is no longer available.',
+            ], 404);
+        }
 
-            $item = $cart->items()
-                ->where('product_id', $product->id)
-                ->first();
+        $quantity = $request->validated('quantity');
 
-            $newQuantity = ($item?->quantity ?? 0) + $quantity;
+        $item = $cart->items()
+            ->where('product_id', $product->id)
+            ->first();
 
-            abort_if(
-                $newQuantity > $product->stock,
-                422,
-                'Insufficient stock.'
-            );
+        $currentQuantity = $item?->quantity ?? 0;
+        $newQuantity = $currentQuantity + $quantity;
 
+        if ($newQuantity > $product->stock) {
+            return response()->json([
+                'message' => "Insufficient stock. Only {$product->stock} available.",
+            ], 422);
+        }
+
+        DB::transaction(function () use (
+            $cart,
+            $item,
+            $product,
+            $newQuantity,
+            $quantity
+        ) {
             if ($item) {
                 $item->update([
                     'quantity' => $newQuantity,
                 ]);
-            } else {
-                $cart->items()->create([
-                    'product_id' => $product->id,
-                    'quantity' => $quantity,
-                ]);
+
+                return;
             }
 
-            return $cart;
+            $cart->items()->create([
+                'product_id' => $product->id,
+                'quantity' => $quantity,
+            ]);
         });
 
-        $cart->load('items');
+        $cart->load('items.product');
 
         return $this->cartResponse($cart);
     }
@@ -81,25 +94,49 @@ class CartController extends Controller
     ) {
         $cart = $this->findCart($request);
 
-        abort_unless($cart, 404, 'Cart not found.');
+        if (! $cart) {
+            return response()->json([
+                'message' => 'Cart not found.',
+            ], 404);
+        }
 
         $cartItem = $cart->items()
             ->with('product')
-            ->findOrFail($item);
+            ->find($item);
+
+        if (! $cartItem) {
+            return response()->json([
+                'message' => 'Cart item not found.',
+            ], 404);
+        }
+
+        $product = $cartItem->product;
+
+        if (! $product) {
+            return response()->json([
+                'message' => 'Product not found.',
+            ], 404);
+        }
+
+        if (! $product->is_active) {
+            return response()->json([
+                'message' => 'Product is no longer available.',
+            ], 422);
+        }
 
         $quantity = $request->validated('quantity');
 
-        abort_if(
-            $quantity > $cartItem->product->stock,
-            422,
-            'Insufficient stock.'
-        );
+        if ($quantity > $product->stock) {
+            return response()->json([
+                'message' => "Insufficient stock. Only {$product->stock} available.",
+            ], 422);
+        }
 
         $cartItem->update([
             'quantity' => $quantity,
         ]);
 
-        $cart->load('items');
+        $cart->load('items.product');
 
         return $this->cartResponse($cart);
     }
@@ -108,11 +145,21 @@ class CartController extends Controller
     {
         $cart = $this->findCart($request);
 
-        abort_unless($cart, 404, 'Cart not found.');
+        if (! $cart) {
+            return response()->json([
+                'message' => 'Cart not found.',
+            ], 404);
+        }
 
-        $cart->items()
-            ->findOrFail($item)
-            ->delete();
+        $cartItem = $cart->items()->find($item);
+
+        if (! $cartItem) {
+            return response()->json([
+                'message' => 'Cart item not found.',
+            ], 404);
+        }
+
+        $cartItem->delete();
 
         return response()->noContent();
     }

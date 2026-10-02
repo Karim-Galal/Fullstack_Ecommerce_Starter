@@ -17,7 +17,6 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Validation\ValidationException;
 use Laravel\Sanctum\PersonalAccessToken;
-use Illuminate\Support\Str;
 
 use App\Exceptions\CartMergeException;
 use App\Services\CartMergeService;
@@ -25,7 +24,7 @@ use App\Services\CartMergeService;
 
 class AuthController extends Controller
 {
-    public function register(RegisterRequest $request,CartMergeService $cartMergeService)
+    public function register(RegisterRequest $request)
     {
         $user = User::create([
             'name' => $request->name,
@@ -37,20 +36,8 @@ class AuthController extends Controller
 
         $user->sendEmailVerificationNotification();
 
-        /*
-        * Authentication must succeed independently
-        * from cart merging.
-        */
         if ($request->device_name) {
-            $token = $user->createToken(
-                $request->device_name
-            )->plainTextToken;
-
-            $this->mergeGuestCartSafely(
-                $cartMergeService,
-                $user,
-                $request
-            );
+            $token = $user->createToken($request->device_name)->plainTextToken;
 
             return response()->json([
                 'message' => 'Registration successful. Please verify your email address.',
@@ -63,19 +50,13 @@ class AuthController extends Controller
 
         $request->session()->regenerate();
 
-        $this->mergeGuestCartSafely(
-            $cartMergeService,
-            $user,
-            $request
-        );
-
         return response()->json([
             'message' => 'Registration successful. Please verify your email address.',
             'user' => new UserResource($user),
         ], 201);
     }
 
-    public function login(LoginRequest $request,CartMergeService $cartMergeService)
+    public function login(LoginRequest $request)
     {
         $credentials = $request->only('email', 'password');
 
@@ -87,29 +68,14 @@ class AuthController extends Controller
 
         $user = $request->user();
 
+        // Regenerate session only for web guard (SPA)
         if (Auth::guard('web')->check()) {
             $request->session()->regenerate();
         }
 
-        $token = null;
-
         if ($request->device_name) {
-            $token = $user->createToken(
-                $request->device_name
-            )->plainTextToken;
-        }
+            $token = $user->createToken($request->device_name)->plainTextToken;
 
-        /*
-        * Authentication is already successful.
-        * Cart merge is allowed to fail without breaking login.
-        */
-        $this->mergeGuestCartSafely(
-            $cartMergeService,
-            $user,
-            $request
-        );
-
-        if ($token) {
             return response()->json([
                 'message' => 'Login successful',
                 'user' => new UserResource($user),
@@ -165,7 +131,7 @@ class AuthController extends Controller
             function ($user, $password) {
                 $user->forceFill([
                     'password' => Hash::make($password),
-                ])->setRememberToken(Str::random(60));
+                ])->setRememberToken(\Str::random(60));
                 $user->save();
             }
         );
@@ -179,7 +145,7 @@ class AuthController extends Controller
     {
         $user = User::findOrFail($request->id);
 
-        if (! hash_equals((string) $request->hash, hash('sha256', $user->getEmailForVerification()))) {
+        if (! hash_equals((string) $request->hash, sha256($user->getEmailForVerification()))) {
             throw ValidationException::withMessages([
                 'email' => ['Invalid verification link.'],
             ]);
@@ -234,24 +200,4 @@ class AuthController extends Controller
     {
         return response()->json($request->user()->tokens);
     }
-
-    private function mergeGuestCartSafely(CartMergeService $cartMergeService,User $user,Request $request): void
-    {
-        $guestToken = $request->header('X-Guest-Cart');
-
-        if (! $guestToken) {
-            return;
-        }
-
-        try {
-            $cartMergeService->merge($user, $guestToken);
-        } catch (\Throwable $exception) {
-            /*
-            * Cart merge must never break authentication.
-            * The user remains logged in / registered.
-            */
-            report($exception);
-        }
-    }
-
 }
