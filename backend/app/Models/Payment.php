@@ -11,9 +11,9 @@ class Payment extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $fillable = ['order_id', 'amount', 'currency', 'gateway', 'payment_method', 'status', 'transaction_reference', 'gateway_reference', 'paid_at', 'gateway_metadata'];
+    protected $fillable = ['order_id', 'amount', 'currency', 'gateway', 'payment_method', 'status', 'transaction_reference', 'gateway_reference', 'paid_at', 'gateway_metadata', 'expires_at'];
 
-    protected $casts = ['amount' => 'decimal:2', 'gateway_metadata' => 'array', 'paid_at' => 'datetime'];
+    protected $casts = ['amount' => 'decimal:2', 'gateway_metadata' => 'array', 'paid_at' => 'datetime', 'expires_at' => 'datetime'];
 
     public function order(): BelongsTo
     {

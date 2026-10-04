@@ -6,6 +6,8 @@ use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\CheckoutController;
 use App\Http\Controllers\Api\GoogleAuthController;
 use App\Http\Controllers\Api\InvitationController;
+use App\Http\Controllers\Api\OrderController;
+use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\PaymentWebhookController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\UserController;
@@ -48,19 +50,21 @@ Route::prefix('v1')->group(function () {
         Route::delete('auth/tokens/{token}', [AuthController::class, 'revokeToken']);
         Route::post('checkout', [CheckoutController::class, 'store']);
 
+        Route::post('payments/{payment}/initiate', [PaymentController::class, 'initiate']);
+
         Route::prefix('admin')->group(function () {
             Route::get('products', [ProductController::class, 'adminIndex'])
-            ->withTrashed();
+                ->withTrashed();
             Route::get('products/{product}', [ProductController::class, 'adminShow'])
-            ->withTrashed();
+                ->withTrashed();
             Route::post('products', [ProductController::class, 'store']);
             Route::patch('products/{product}', [ProductController::class, 'update']);
             Route::delete('products/{product}', [ProductController::class, 'destroy']);
 
             Route::get('categories', [CategoryController::class, 'adminIndex'])
-            ->withTrashed();
+                ->withTrashed();
             Route::get('categories/{category}', [CategoryController::class, 'adminShow'])
-            ->withTrashed();
+                ->withTrashed();
             Route::post('categories', [CategoryController::class, 'store']);
             Route::patch('categories/{category}', [CategoryController::class, 'update']);
             Route::delete('categories/{category}', [CategoryController::class, 'destroy']);
@@ -72,6 +76,10 @@ Route::prefix('v1')->group(function () {
             Route::delete('users/{user}', [UserController::class, 'destroy']);
             Route::patch('users/{user}/activate', [UserController::class, 'activate']);
             Route::patch('users/{user}/deactivate', [UserController::class, 'deactivate']);
+
+            Route::get('orders', [OrderController::class, 'index']);
+            Route::get('orders/{order}', [OrderController::class, 'show']);
+            Route::post('payments/{payment}/refund', [PaymentController::class, 'refund']);
 
             Route::get('invitations', [InvitationController::class, 'index']);
             Route::post('invitations', [InvitationController::class, 'store']);

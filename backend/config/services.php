@@ -2,9 +2,21 @@
 
 return [
     'google' => ['client_id' => env('GOOGLE_CLIENT_ID'), 'client_secret' => env('GOOGLE_CLIENT_SECRET'), 'redirect' => env('GOOGLE_REDIRECT_URI')],
-    'stripe' => ['key' => env('STRIPE_KEY'), 'secret' => env('STRIPE_SECRET'), 'webhook_secret' => env('STRIPE_WEBHOOK_SECRET')],
-    'paymob' => ['api_key' => env('PAYMOB_API_KEY'), 'hmac_secret' => env('PAYMOB_HMAC_SECRET'), 'webhook_secret' => env('PAYMOB_WEBHOOK_SECRET')],
+    'stripe' => [
+        'key' => env('STRIPE_KEY'),
+        'secret' => env('STRIPE_SECRET'),
+        'webhook_secret' => env('STRIPE_WEBHOOK_SECRET'),
+    ],
 
+    'paymob' => [
+        'api_key' => env('PAYMOB_API_KEY'),
+        'secret_key' => env('PAYMOB_SECRET_KEY'),
+        'integration_id' => env('PAYMOB_INTEGRATION_ID'),
+        'integration_ids' => array_map('intval', array_filter(explode(',', env('PAYMOB_INTEGRATION_IDS', '')))),
+        'hmac_secret' => env('PAYMOB_HMAC_SECRET'),
+        'base_url' => env('PAYMOB_BASE_URL', 'https://accept.paymob.com'),
+        'redirection_url' => env('PAYMOB_REDIRECTION_URL'),
+    ],
     /*
     |--------------------------------------------------------------------------
     | Third Party Services
@@ -37,5 +49,4 @@ return [
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
-
 ];
