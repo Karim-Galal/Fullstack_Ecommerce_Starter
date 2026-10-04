@@ -4,7 +4,4 @@ namespace App\Exceptions;
 
 use RuntimeException;
 
-class CartMergeException extends RuntimeException
-{
-  
-}
+class CartMergeException extends RuntimeException {}

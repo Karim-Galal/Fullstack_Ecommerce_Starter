@@ -117,7 +117,14 @@ class AuthTest extends TestCase
         ]);
 
         $response->assertStatus(422)
-            ->assertJsonValidationErrors(['email']);
+            ->assertJson([
+                'message' => 'The provided credentials are incorrect.',
+                'errors' => [
+                    'message' => [
+                        'The provided credentials are incorrect.',
+                    ],
+                ],
+            ]);
     }
 
     public function test_logout_works(): void

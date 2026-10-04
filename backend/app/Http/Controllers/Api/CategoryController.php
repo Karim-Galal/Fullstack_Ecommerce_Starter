@@ -9,6 +9,7 @@ use App\Http\Resources\CategoryResource;
 use App\Models\Category;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+
 class CategoryController extends Controller
 {
     public function index()
@@ -81,7 +82,7 @@ class CategoryController extends Controller
         ))->response()->setStatusCode(201);
     }
 
-    public function update(UpdateCategoryRequest $request,Category $category)
+    public function update(UpdateCategoryRequest $request, Category $category)
     {
         $this->authorize('update', $category);
 

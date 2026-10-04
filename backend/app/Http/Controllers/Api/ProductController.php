@@ -33,7 +33,6 @@ class ProductController extends Controller
             ->firstOrFail();
     }
 
-
     public function adminIndex()
     {
         $this->authorize('viewAny', Product::class);

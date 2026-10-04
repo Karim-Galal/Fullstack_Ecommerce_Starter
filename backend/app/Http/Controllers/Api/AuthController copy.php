@@ -18,10 +18,6 @@ use Illuminate\Support\Facades\Password;
 use Illuminate\Validation\ValidationException;
 use Laravel\Sanctum\PersonalAccessToken;
 
-use App\Exceptions\CartMergeException;
-use App\Services\CartMergeService;
-
-
 class AuthController extends Controller
 {
     public function register(RegisterRequest $request)

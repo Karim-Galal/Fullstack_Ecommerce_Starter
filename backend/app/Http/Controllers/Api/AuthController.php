@@ -11,21 +11,18 @@ use App\Http\Requests\Auth\TokenRequest;
 use App\Http\Requests\Auth\VerifyEmailRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
+use App\Services\CartMergeService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Laravel\Sanctum\PersonalAccessToken;
-use Illuminate\Support\Str;
-
-use App\Exceptions\CartMergeException;
-use App\Services\CartMergeService;
-
 
 class AuthController extends Controller
 {
-    public function register(RegisterRequest $request,CartMergeService $cartMergeService)
+    public function register(RegisterRequest $request, CartMergeService $cartMergeService)
     {
         $user = User::create([
             'name' => $request->name,
@@ -75,7 +72,7 @@ class AuthController extends Controller
         ], 201);
     }
 
-    public function login(LoginRequest $request,CartMergeService $cartMergeService)
+    public function login(LoginRequest $request, CartMergeService $cartMergeService)
     {
         $credentials = $request->only('email', 'password');
 
@@ -235,7 +232,7 @@ class AuthController extends Controller
         return response()->json($request->user()->tokens);
     }
 
-    private function mergeGuestCartSafely(CartMergeService $cartMergeService,User $user,Request $request): void
+    private function mergeGuestCartSafely(CartMergeService $cartMergeService, User $user, Request $request): void
     {
         $guestToken = $request->header('X-Guest-Cart');
 
@@ -253,5 +250,4 @@ class AuthController extends Controller
             report($exception);
         }
     }
-
 }

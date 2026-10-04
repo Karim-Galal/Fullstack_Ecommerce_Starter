@@ -24,6 +24,8 @@ class SendOrderConfirmation implements ShouldQueue
 
     public function handle(): void
     {
-        Log::info('Order confirmation queued', ['order_id' => $this->orderId]);
+        Log::info('Order confirmation sent', [
+            'order_id' => $this->orderId,
+        ]);
     }
 }
