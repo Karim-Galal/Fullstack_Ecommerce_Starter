@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->string('invited_email');
             $table->string('token_hash', 64)->unique();
-            $table->string('type');
+            $table->string('type')->default('staff');
             $table->foreignId('created_by')->constrained('users')->cascadeOnDelete();
             $table->string('status')->default('pending')->index();
             $table->timestamp('expires_at');
