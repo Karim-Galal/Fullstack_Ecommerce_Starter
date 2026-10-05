@@ -5,12 +5,14 @@ use App\Http\Controllers\Api\CartController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\CheckoutController;
 use App\Http\Controllers\Api\CollectionController;
+use App\Http\Controllers\Api\CouponController;
 use App\Http\Controllers\Api\GoogleAuthController;
 use App\Http\Controllers\Api\InvitationController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\PaymentWebhookController;
 use App\Http\Controllers\Api\ProductController;
+use App\Http\Controllers\Api\OfferController;
 use App\Http\Controllers\Api\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -196,6 +198,30 @@ Route::prefix('v1')->group(function () {
             Route::post('collections', [CollectionController::class, 'store']);
             Route::patch('collections/{collection}', [CollectionController::class, 'update']);
             Route::delete('collections/{collection}', [CollectionController::class, 'destroy']);
+
+            /*
+            |--------------------------------------------------------------------------
+            | Admin Offer Routes
+            |--------------------------------------------------------------------------
+            */
+            Route::get('offers', [OfferController::class, 'adminIndex']);
+            Route::get('offers/{offer}', [OfferController::class, 'adminShow'])->withTrashed();
+            Route::post('offers', [OfferController::class, 'store']);
+            Route::patch('offers/{offer}', [OfferController::class, 'update']);
+            Route::delete('offers/{offer}', [OfferController::class, 'destroy']);
+
+            /*
+            |--------------------------------------------------------------------------
+            | Admin Coupon Routes
+            |--------------------------------------------------------------------------
+            */
+
+            Route::get('coupons', [CouponController::class, 'adminIndex']);
+            Route::get('coupons/{coupon}', [CouponController::class, 'adminShow'])
+                ->withTrashed();
+            Route::post('coupons', [CouponController::class, 'store']);
+            Route::patch('coupons/{coupon}', [CouponController::class, 'update']);
+            Route::delete('coupons/{coupon}', [CouponController::class, 'destroy']);
 
             /*
             |--------------------------------------------------------------------------

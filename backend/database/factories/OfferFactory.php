@@ -3,6 +3,8 @@
 namespace Database\Factories;
 
 use App\Models\Offer;
+use App\Models\Product;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -10,31 +12,41 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class OfferFactory extends Factory
 {
-    /**
-     * The name of the factory's corresponding model.
-     *
-     * @var string
-     */
     protected $model = Offer::class;
 
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
     public function definition(): array
     {
-        $type = fake()->randomElement(['percentage', 'fixed_price', 'buy_x_get_y']);
+        $type = fake()->randomElement([
+            'percentage',
+            'fixed',
+            'buy_x_get_y',
+        ]);
 
         return [
+            'created_by' => User::factory(),
             'name' => fake()->sentence(3),
             'type' => $type,
-            'value' => $type === 'fixed_price' ? fake()->randomFloat(2, 10, 1000) : fake()->randomFloat(2, 5, 50),
-            'buy_quantity' => $type === 'buy_x_get_y' ? fake()->numberBetween(1, 5) : null,
-            'get_quantity' => $type === 'buy_x_get_y' ? fake()->numberBetween(1, 3) : null,
-            'starts_at' => fake()->optional()->dateTimeBetween('-1 month', '+1 month'),
-            'ends_at' => fake()->optional()->dateTimeBetween('+1 month', '+1 year'),
+            'value' => in_array($type, ['percentage', 'fixed'], true)
+                ? fake()->randomFloat(2, 5, 100)
+                : null,
+            'buy_quantity' => $type === 'buy_x_get_y'
+                ? fake()->numberBetween(1, 5)
+                : null,
+            'get_quantity' => $type === 'buy_x_get_y'
+                ? fake()->numberBetween(1, 3)
+                : null,
+            'starts_at' => now(),
+            'ends_at' => now()->addMonths(3),
             'is_active' => true,
         ];
+    }
+
+    public function withProducts(int $count = 1): static
+    {
+        return $this->afterCreating(function (Offer $offer) use ($count) {
+            $offer->products()->attach(
+                Product::factory()->count($count)->create()
+            );
+        });
     }
 }

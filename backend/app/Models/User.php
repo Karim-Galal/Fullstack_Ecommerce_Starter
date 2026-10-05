@@ -87,6 +87,15 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(Invitation::class, 'approved_by');
     }
 
+    public function coupons()
+    {
+        return $this->hasMany(Coupon::class, 'created_by');
+    }
+
+    public function offers()
+    {
+        return $this->hasMany(Offer::class, 'created_by');
+    }
     public function cart()
     {
         return $this->hasOne(Cart::class);
