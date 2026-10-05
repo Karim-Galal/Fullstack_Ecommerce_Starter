@@ -16,6 +16,8 @@ class ProductResource extends JsonResource
             'price' => $this->price,
             'stock' => $this->stock,
             'is_active' => $this->is_active,
+            'translations' => ProductTranslationResource::collection($this->whenLoaded('translations')),
+            'images' => ProductImageResource::collection($this->whenLoaded('images')),
         ];
     }
 }
