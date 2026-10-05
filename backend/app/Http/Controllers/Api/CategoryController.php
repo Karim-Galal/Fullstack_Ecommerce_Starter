@@ -9,6 +9,8 @@ use App\Http\Resources\CategoryResource;
 use App\Models\Category;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Log;
 
 class CategoryController extends Controller
 {
@@ -152,18 +154,16 @@ class CategoryController extends Controller
         $parent = Category::findOrFail($parentId);
 
         if ($category && $parent->id === $category->id) {
-            abort(
-                422,
-                'A category cannot be its own parent.'
-            );
+            throw ValidationException::withMessages([
+                'parent_id' => ['A category cannot be its own parent.'],
+            ]);
         }
 
         while ($category && $parent) {
             if ($parent->id === $category->id) {
-                abort(
-                    422,
-                    'Category hierarchy cannot contain a cycle.'
-                );
+                throw ValidationException::withMessages([
+                    'parent_id' => ['Category hierarchy cannot contain a cycle.'],
+                ]);
             }
 
             $parent = $parent->parent;

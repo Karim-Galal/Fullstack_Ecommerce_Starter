@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CartController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\CheckoutController;
+use App\Http\Controllers\Api\CollectionController;
 use App\Http\Controllers\Api\GoogleAuthController;
 use App\Http\Controllers\Api\InvitationController;
 use App\Http\Controllers\Api\OrderController;
@@ -13,9 +14,25 @@ use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\UserController;
 use Illuminate\Support\Facades\Route;
 
-Route::post('v1/payments/{gateway}/webhook', [PaymentWebhookController::class, 'handle'])->middleware('throttle:60,1');
+/*
+|--------------------------------------------------------------------------
+| Payment Webhook Routes
+|--------------------------------------------------------------------------
+*/
+
+Route::post(
+    'v1/payments/{gateway}/webhook',
+    [PaymentWebhookController::class, 'handle']
+)->middleware('throttle:60,1');
 
 Route::prefix('v1')->group(function () {
+
+    /*
+    |--------------------------------------------------------------------------
+    | Authentication Routes
+    |--------------------------------------------------------------------------
+    */
+
     Route::middleware('throttle:auth')->prefix('auth')->group(function () {
         Route::post('register', [AuthController::class, 'register']);
         Route::post('login', [AuthController::class, 'login']);
@@ -24,50 +41,167 @@ Route::prefix('v1')->group(function () {
     });
 
     Route::prefix('auth')->group(function () {
-        Route::get('email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])->name('verification.verify');
-        Route::post('email/verification-notification', [AuthController::class, 'resendVerificationEmail'])->middleware('auth:sanctum')->name('verification.send');
+        Route::get(
+            'email/verify/{id}/{hash}',
+            [AuthController::class, 'verifyEmail']
+        )->name('verification.verify');
+
+        Route::post(
+            'email/verification-notification',
+            [AuthController::class, 'resendVerificationEmail']
+        )
+            ->middleware('auth:sanctum')
+            ->name('verification.send');
     });
+
+    /*
+    |--------------------------------------------------------------------------
+    | Public Product Routes
+    |--------------------------------------------------------------------------
+    */
 
     Route::get('products', [ProductController::class, 'index']);
     Route::get('products/{identifier}', [ProductController::class, 'show']);
+
+    /*
+    |--------------------------------------------------------------------------
+    | Public Category Routes
+    |--------------------------------------------------------------------------
+    */
+
     Route::get('categories', [CategoryController::class, 'index']);
+
+    /*
+    |--------------------------------------------------------------------------
+    | Public Collection Routes
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get('collections', [CollectionController::class, 'index']);
+    Route::get('collections/{identifier}', [CollectionController::class, 'show']);
+
+    /*
+    |--------------------------------------------------------------------------
+    | Public Cart Routes
+    |--------------------------------------------------------------------------
+    */
+
     Route::get('cart', [CartController::class, 'show']);
     Route::post('cart/items', [CartController::class, 'add']);
     Route::patch('cart/items/{item}', [CartController::class, 'update']);
     Route::delete('cart/items/{item}', [CartController::class, 'destroy']);
+
+    /*
+    |--------------------------------------------------------------------------
+    | Google Authentication Routes
+    |--------------------------------------------------------------------------
+    */
 
     Route::prefix('google')->group(function () {
         Route::get('redirect', [GoogleAuthController::class, 'redirect']);
         Route::get('callback', [GoogleAuthController::class, 'callback']);
     });
 
+    /*
+    |--------------------------------------------------------------------------
+    | Authenticated Routes
+    |--------------------------------------------------------------------------
+    */
+
     Route::middleware('auth:sanctum')->group(function () {
+
+        /*
+        |--------------------------------------------------------------------------
+        | Authenticated Account Routes
+        |--------------------------------------------------------------------------
+        */
 
         Route::get('auth/me', [AuthController::class, 'me']);
         Route::post('auth/logout', [AuthController::class, 'logout']);
         Route::post('auth/tokens', [AuthController::class, 'createToken']);
         Route::get('auth/tokens', [AuthController::class, 'tokens']);
         Route::delete('auth/tokens/{token}', [AuthController::class, 'revokeToken']);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Checkout Routes
+        |--------------------------------------------------------------------------
+        */
+
         Route::post('checkout', [CheckoutController::class, 'store']);
 
-        Route::post('payments/{payment}/initiate', [PaymentController::class, 'initiate']);
+        /*
+        |--------------------------------------------------------------------------
+        | Payment Routes
+        |--------------------------------------------------------------------------
+        */
+
+        Route::post(
+            'payments/{payment}/initiate',
+            [PaymentController::class, 'initiate']
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | Admin Routes
+        |--------------------------------------------------------------------------
+        */
 
         Route::prefix('admin')->group(function () {
+
+            /*
+            |--------------------------------------------------------------------------
+            | Admin Product Routes
+            |--------------------------------------------------------------------------
+            */
+
             Route::get('products', [ProductController::class, 'adminIndex'])
                 ->withTrashed();
+
             Route::get('products/{product}', [ProductController::class, 'adminShow'])
                 ->withTrashed();
+
             Route::post('products', [ProductController::class, 'store']);
             Route::patch('products/{product}', [ProductController::class, 'update']);
             Route::delete('products/{product}', [ProductController::class, 'destroy']);
 
+            /*
+            |--------------------------------------------------------------------------
+            | Admin Category Routes
+            |--------------------------------------------------------------------------
+            */
+
             Route::get('categories', [CategoryController::class, 'adminIndex'])
                 ->withTrashed();
+
             Route::get('categories/{category}', [CategoryController::class, 'adminShow'])
                 ->withTrashed();
+
             Route::post('categories', [CategoryController::class, 'store']);
             Route::patch('categories/{category}', [CategoryController::class, 'update']);
             Route::delete('categories/{category}', [CategoryController::class, 'destroy']);
+
+            /*
+            |--------------------------------------------------------------------------
+            | Admin Collection Routes
+            |--------------------------------------------------------------------------
+            */
+
+            Route::get('collections', [CollectionController::class, 'adminIndex'])
+                ->withTrashed();
+
+            Route::get('collections/{collection}', [CollectionController::class, 'adminShow'])
+                ->withTrashed();
+
+            Route::post('collections', [CollectionController::class, 'store']);
+            Route::patch('collections/{collection}', [CollectionController::class, 'update']);
+            Route::delete('collections/{collection}', [CollectionController::class, 'destroy']);
+
+            /*
+            |--------------------------------------------------------------------------
+            | Admin User Routes
+            |--------------------------------------------------------------------------
+            */
 
             Route::get('users', [UserController::class, 'index']);
             Route::get('users/{user}', [UserController::class, 'show']);
@@ -77,18 +211,68 @@ Route::prefix('v1')->group(function () {
             Route::patch('users/{user}/activate', [UserController::class, 'activate']);
             Route::patch('users/{user}/deactivate', [UserController::class, 'deactivate']);
 
+            /*
+            |--------------------------------------------------------------------------
+            | Admin Order Routes
+            |--------------------------------------------------------------------------
+            */
+
             Route::get('orders', [OrderController::class, 'index']);
             Route::get('orders/{order}', [OrderController::class, 'show']);
-            Route::post('payments/{payment}/refund', [PaymentController::class, 'refund']);
+
+            /*
+            |--------------------------------------------------------------------------
+            | Admin Payment Routes
+            |--------------------------------------------------------------------------
+            */
+
+            Route::post(
+                'payments/{payment}/refund',
+                [PaymentController::class, 'refund']
+            );
+
+            /*
+            |--------------------------------------------------------------------------
+            | Admin Invitation Routes
+            |--------------------------------------------------------------------------
+            */
 
             Route::get('invitations', [InvitationController::class, 'index']);
             Route::post('invitations', [InvitationController::class, 'store']);
-            Route::post('invitations/{invitation}/approve', [InvitationController::class, 'approve']);
-            Route::post('invitations/{invitation}/reject', [InvitationController::class, 'reject']);
-            Route::post('invitations/{invitation}/revoke', [InvitationController::class, 'revoke']);
+            Route::post(
+                'invitations/{invitation}/approve',
+                [InvitationController::class, 'approve']
+            );
+            Route::post(
+                'invitations/{invitation}/reject',
+                [InvitationController::class, 'reject']
+            );
+            Route::post(
+                'invitations/{invitation}/revoke',
+                [InvitationController::class, 'revoke']
+            );
         });
     });
 
-    Route::middleware('throttle:invitations')->get('invitations/{token}', [InvitationController::class, 'show']);
-    Route::middleware('throttle:invitations')->post('invitations/{token}/accept', [InvitationController::class, 'accept']);
+    /*
+    |--------------------------------------------------------------------------
+    | Public Invitation Routes
+    |--------------------------------------------------------------------------
+    |
+    | The invitation token acts as the credential for unauthenticated
+    | invitees. These routes are throttled separately.
+    |
+    */
+
+    Route::middleware('throttle:invitations')->group(function () {
+        Route::get(
+            'invitations/{token}',
+            [InvitationController::class, 'show']
+        );
+
+        Route::post(
+            'invitations/{token}/accept',
+            [InvitationController::class, 'accept']
+        );
+    });
 });
