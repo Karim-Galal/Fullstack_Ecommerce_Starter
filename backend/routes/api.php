@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\PaymentWebhookController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\OfferController;
+use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -95,6 +96,13 @@ Route::prefix('v1')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
+    | Public Review Routes
+    |--------------------------------------------------------------------------
+    */
+    Route::get('/reviews', [ReviewController::class, 'index']);
+
+    /*
+    |--------------------------------------------------------------------------
     | Google Authentication Routes
     |--------------------------------------------------------------------------
     */
@@ -142,6 +150,17 @@ Route::prefix('v1')->group(function () {
             'payments/{payment}/initiate',
             [PaymentController::class, 'initiate']
         );
+
+        /*
+        |--------------------------------------------------------------------------
+        | Reviews Routes
+        |--------------------------------------------------------------------------
+        */
+        Route::get('/reviews/mine', [ReviewController::class, 'myReviews']);
+        Route::post('/reviews', [ReviewController::class, 'store']);
+        Route::get('/reviews/{review}', [ReviewController::class, 'show']);
+        Route::patch('/reviews/{review}', [ReviewController::class, 'update']);
+        Route::delete('/reviews/{review}', [ReviewController::class, 'destroy']);
 
         /*
         |--------------------------------------------------------------------------
@@ -222,6 +241,15 @@ Route::prefix('v1')->group(function () {
             Route::post('coupons', [CouponController::class, 'store']);
             Route::patch('coupons/{coupon}', [CouponController::class, 'update']);
             Route::delete('coupons/{coupon}', [CouponController::class, 'destroy']);
+
+            /*
+            |--------------------------------------------------------------------------
+            | Admin Review Routes
+            |--------------------------------------------------------------------------
+            */
+
+            Route::get('reviews', [ReviewController::class, 'adminIndex']);
+            Route::patch('reviews/{review}/status', [ReviewController::class, 'moderate']);
 
             /*
             |--------------------------------------------------------------------------
