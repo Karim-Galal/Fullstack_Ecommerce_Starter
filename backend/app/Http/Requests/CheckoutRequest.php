@@ -24,6 +24,7 @@ class CheckoutRequest extends FormRequest
             'shipping_address.postal_code' => ['nullable', 'string', 'max:20'],
             'gateway' => ['required', 'in:stripe,paymob'],
             'payment_method' => ['nullable', 'string', 'max:100'],
+            'coupon_code' => ['nullable', 'string', 'max:255'],
         ];
     }
 }

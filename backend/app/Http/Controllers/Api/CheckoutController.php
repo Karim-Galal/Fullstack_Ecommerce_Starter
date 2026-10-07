@@ -7,6 +7,7 @@ use App\Http\Requests\CheckoutRequest;
 use App\Http\Resources\OrderResource;
 use App\Http\Resources\PaymentResource;
 use App\Models\Cart;
+use App\Models\Coupon;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\Product;
@@ -35,10 +36,15 @@ class CheckoutController extends Controller
             }
 
             $subtotal = 0;
+            $discountTotal = 0;
             $lines = [];
+            $hasValidOffer = false;
 
             foreach ($cart->items->sortBy('product_id') as $cartItem) {
-                $product = Product::with('translations')
+                $product = Product::with([
+                    'translations',
+                    'offers',
+                ])
                     ->lockForUpdate()
                     ->findOrFail($cartItem->product_id);
 
@@ -48,20 +54,154 @@ class CheckoutController extends Controller
                     ]);
                 }
 
-                $lineTotal = round((float) $product->price * $cartItem->quantity, 2);
-                $subtotal = round($subtotal + $lineTotal, 2);
+                $quantity = $cartItem->quantity;
+                $unitPrice = (float) $product->price;
+                $lineSubtotal = round($unitPrice * $quantity, 2);
+                $lineDiscount = 0;
+
+                $validOffer = $product->offers
+                    ->first(function ($offer) {
+                        $now = now();
+
+                        return $offer->is_active
+                            && (! $offer->starts_at || $offer->starts_at <= $now)
+                            && (! $offer->ends_at || $offer->ends_at >= $now);
+                    });
+
+                if ($validOffer) {
+                    $hasValidOffer = true;
+
+                    $lineDiscount = match ($validOffer->type) {
+                        'percentage' => round(
+                            $lineSubtotal * ((float) $validOffer->value / 100),
+                            2
+                        ),
+
+                        'fixed' => min(
+                            (float) $validOffer->value,
+                            $lineSubtotal
+                        ),
+
+                        'buy_x_get_y' => $this->calculateBuyXGetYDiscount(
+                            $unitPrice,
+                            $quantity,
+                            (int) $validOffer->buy_quantity,
+                            (int) $validOffer->get_quantity
+                        ),
+
+                        default => 0,
+                    };
+
+                    $lineDiscount = min($lineDiscount, $lineSubtotal);
+                }
+
+                $lineTotal = round($lineSubtotal - $lineDiscount, 2);
+
+                $subtotal = round($subtotal + $lineSubtotal, 2);
+                $discountTotal = round($discountTotal + $lineDiscount, 2);
 
                 $lines[] = [
                     'product_id' => $product->id,
                     'name' => $product->translations->firstWhere('locale', 'en')->name ?? $product->slug,
                     'sku' => $product->sku,
                     'unit_price' => $product->price,
-                    'quantity' => $cartItem->quantity,
+                    'quantity' => $quantity,
                     'line_total' => $lineTotal,
                 ];
 
-                $product->decrement('stock', $cartItem->quantity);
+                $product->decrement('stock', $quantity);
             }
+
+            if ($hasValidOffer && ! empty($data['coupon_code'])) {
+                throw ValidationException::withMessages([
+                    'coupon_code' => ['A coupon cannot be used with an active product offer.'],
+                ]);
+            }
+
+            if (! $hasValidOffer && ! empty($data['coupon_code'])) {
+                $coupon = Coupon::with('products')
+                    ->where('code', $data['coupon_code'])
+                    ->lockForUpdate()
+                    ->first();
+
+                if (! $coupon) {
+                    throw ValidationException::withMessages([
+                        'coupon_code' => ['The coupon code is invalid.'],
+                    ]);
+                }
+
+                $now = now();
+
+                if (! $coupon->is_active) {
+                    throw ValidationException::withMessages([
+                        'coupon_code' => ['The coupon is inactive.'],
+                    ]);
+                }
+
+                if ($coupon->starts_at && $coupon->starts_at > $now) {
+                    throw ValidationException::withMessages([
+                        'coupon_code' => ['The coupon is not active yet.'],
+                    ]);
+                }
+
+                if ($coupon->expires_at && $coupon->expires_at < $now) {
+                    throw ValidationException::withMessages([
+                        'coupon_code' => ['The coupon has expired.'],
+                    ]);
+                }
+
+                if ($coupon->usage_limit !== null && $coupon->used_count >= $coupon->usage_limit) {
+                    throw ValidationException::withMessages([
+                        'coupon_code' => ['The coupon usage limit has been reached.'],
+                    ]);
+                }
+
+                if ($coupon->minimum_order !== null && $subtotal < (float) $coupon->minimum_order) {
+                    throw ValidationException::withMessages([
+                        'coupon_code' => ['The minimum order amount for this coupon has not been reached.'],
+                    ]);
+                }
+
+                $eligibleSubtotal = 0;
+
+                foreach ($cart->items as $cartItem) {
+                    if ($coupon->products->contains('id', $cartItem->product_id)) {
+                        $product = $lines[array_search(
+                            $cartItem->product_id,
+                            array_column($lines, 'product_id')
+                        )];
+
+                        $eligibleSubtotal = round(
+                            $eligibleSubtotal + ((float) $product['unit_price'] * $cartItem->quantity),
+                            2
+                        );
+                    }
+                }
+
+                if ($eligibleSubtotal <= 0) {
+                    throw ValidationException::withMessages([
+                        'coupon_code' => ['The coupon does not apply to any product in your cart.'],
+                    ]);
+                }
+
+                $couponDiscount = match ($coupon->discount_type) {
+                    'percentage' => round(
+                        $eligibleSubtotal * ((float) $coupon->discount_amount / 100),
+                        2
+                    ),
+
+                    'fixed' => min(
+                        (float) $coupon->discount_amount,
+                        $eligibleSubtotal
+                    ),
+
+                    default => 0,
+                };
+
+                $discountTotal = round($discountTotal + $couponDiscount, 2);
+            }
+
+            $total = round(max(0, $subtotal - $discountTotal), 2);
 
             $order = Order::create([
                 'user_id' => $user->id,
@@ -69,9 +209,9 @@ class CheckoutController extends Controller
                 'status' => 'pending',
                 'currency' => 'EGP',
                 'subtotal' => $subtotal,
-                'discount_total' => 0,
+                'discount_total' => $discountTotal,
                 'shipping_total' => 0,
-                'total' => $subtotal,
+                'total' => $total,
                 'shipping_address' => $data['shipping_address'],
             ]);
 
@@ -100,5 +240,22 @@ class CheckoutController extends Controller
             'payment' => new PaymentResource($payment->fresh()),
             'gateway' => $gateway,
         ], 201);
+    }
+
+    private function calculateBuyXGetYDiscount(
+        float $unitPrice,
+        int $quantity,
+        int $buyQuantity,
+        int $getQuantity
+    ): float {
+        $groupSize = $buyQuantity + $getQuantity;
+
+        if ($groupSize <= 0) {
+            return 0;
+        }
+
+        $freeQuantity = intdiv($quantity, $groupSize) * $getQuantity;
+
+        return round($freeQuantity * $unitPrice, 2);
     }
 }
