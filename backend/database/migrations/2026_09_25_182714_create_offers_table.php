@@ -13,21 +13,19 @@ return new class extends Migration
     {
         Schema::create('offers', function (Blueprint $table) {
             $table->id();
-
             $table->string('name');
-
             $table->string('type');
-
             $table->decimal('value', 12, 2)->nullable();
-
             $table->unsignedInteger('buy_quantity')->nullable();
             $table->unsignedInteger('get_quantity')->nullable();
-
             $table->timestamp('starts_at')->nullable();
             $table->timestamp('ends_at')->nullable();
-
             $table->boolean('is_active')->default(true);
-
+            $table->foreignId('created_by')
+                ->nullable()
+                ->after('id')
+                ->constrained('users')
+                ->nullOnDelete();
             $table->timestamps();
         });
     }
