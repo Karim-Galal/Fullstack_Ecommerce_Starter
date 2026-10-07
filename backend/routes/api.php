@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\PaymentWebhookController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\OfferController;
 use App\Http\Controllers\Api\ReviewController;
+use App\Http\Controllers\Api\WishlistController;
 use App\Http\Controllers\Api\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -164,6 +165,15 @@ Route::prefix('v1')->group(function () {
 
         /*
         |--------------------------------------------------------------------------
+        | Wishlist Routes
+        |--------------------------------------------------------------------------
+        */
+        Route::get('wishlist', [WishlistController::class, 'index']);
+        Route::post('wishlist', [WishlistController::class, 'store']);
+        Route::delete('wishlist/{product}', [WishlistController::class, 'destroy']);
+
+        /*
+        |--------------------------------------------------------------------------
         | Admin Routes
         |--------------------------------------------------------------------------
         */
@@ -251,6 +261,13 @@ Route::prefix('v1')->group(function () {
             Route::get('reviews', [ReviewController::class, 'adminIndex']);
             Route::patch('reviews/{review}/status', [ReviewController::class, 'moderate']);
 
+            /*
+            |--------------------------------------------------------------------------
+            | Admin Wishlist Routes
+            |--------------------------------------------------------------------------
+            */
+            Route::get('wishlists', [WishlistController::class, 'adminIndex']);
+            Route::get('wishlists/{wishlist}', [WishlistController::class, 'show']);
             /*
             |--------------------------------------------------------------------------
             | Admin User Routes
