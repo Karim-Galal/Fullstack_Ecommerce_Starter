@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\OfferController;
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\WishlistController;
+use App\Http\Controllers\Api\AddressController;
 use App\Http\Controllers\Api\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -163,6 +164,7 @@ Route::prefix('v1')->group(function () {
         Route::patch('/reviews/{review}', [ReviewController::class, 'update']);
         Route::delete('/reviews/{review}', [ReviewController::class, 'destroy']);
 
+
         /*
         |--------------------------------------------------------------------------
         | Wishlist Routes
@@ -171,6 +173,17 @@ Route::prefix('v1')->group(function () {
         Route::get('wishlist', [WishlistController::class, 'index']);
         Route::post('wishlist', [WishlistController::class, 'store']);
         Route::delete('wishlist/{product}', [WishlistController::class, 'destroy']);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Address Routes
+        |--------------------------------------------------------------------------
+        */
+        Route::apiResource('addresses', AddressController::class);
+        Route::patch(
+            'addresses/{address}/default',
+            [AddressController::class, 'setDefault']
+        );
 
         /*
         |--------------------------------------------------------------------------
@@ -268,6 +281,16 @@ Route::prefix('v1')->group(function () {
             */
             Route::get('wishlists', [WishlistController::class, 'adminIndex']);
             Route::get('wishlists/{wishlist}', [WishlistController::class, 'show']);
+
+            /*
+            |--------------------------------------------------------------------------
+            | Admin Address Routes
+            |--------------------------------------------------------------------------
+            */
+            Route::get('addresses', [AddressController::class, 'adminIndex']);
+            Route::get('addresses/{address}', [AddressController::class, 'adminShow']);
+            Route::patch('addresses/{address}', [AddressController::class, 'adminUpdate']);
+
             /*
             |--------------------------------------------------------------------------
             | Admin User Routes
