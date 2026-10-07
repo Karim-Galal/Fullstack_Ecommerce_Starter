@@ -11,9 +11,13 @@ return new class extends Migration
         Schema::create('shipping_methods', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->decimal('price', 12, 2);
+            $table->text('description')->nullable();
+            $table->decimal('price', 10, 2)->default(0);
             $table->boolean('is_active')->default(true);
+            $table->boolean('is_default')->default(false);
             $table->timestamps();
+
+            $table->index(['is_active', 'is_default']);
         });
     }
 

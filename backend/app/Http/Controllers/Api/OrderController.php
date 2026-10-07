@@ -12,7 +12,10 @@ class OrderController extends Controller
     public function index(Request $request)
     {
         $orders = Order::where('user_id', $request->user()->id)
-            ->with('items')
+            ->with([
+                'items',
+                'shippingMethod',
+            ])
             ->latest()
             ->paginate(20);
 
@@ -21,8 +24,16 @@ class OrderController extends Controller
 
     public function show(Request $request, Order $order)
     {
-        abort_unless($order->user_id === $request->user()->id, 403);
+        abort_unless(
+            $order->user_id === $request->user()->id,
+            403
+        );
 
-        return new OrderResource($order->load('items'));
+        return new OrderResource(
+            $order->load([
+                'items',
+                'shippingMethod',
+            ])
+        );
     }
 }

@@ -11,6 +11,7 @@ use App\Models\Coupon;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\Product;
+use App\Models\ShippingMethod;
 use App\Services\Payments\PaymentInitiationService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -18,8 +19,10 @@ use Illuminate\Validation\ValidationException;
 
 class CheckoutController extends Controller
 {
-    public function store(CheckoutRequest $request, PaymentInitiationService $paymentService)
-    {
+    public function store(
+        CheckoutRequest $request,
+        PaymentInitiationService $paymentService
+    ) {
         $user = $request->user();
         $data = $request->validated();
 
@@ -102,7 +105,9 @@ class CheckoutController extends Controller
 
                 $lines[] = [
                     'product_id' => $product->id,
-                    'name' => $product->translations->firstWhere('locale', 'en')->name ?? $product->slug,
+                    'name' => $product->translations
+                        ->firstWhere('locale', 'en')
+                        ->name ?? $product->slug,
                     'sku' => $product->sku,
                     'unit_price' => $product->price,
                     'quantity' => $quantity,
@@ -114,7 +119,9 @@ class CheckoutController extends Controller
 
             if ($hasValidOffer && ! empty($data['coupon_code'])) {
                 throw ValidationException::withMessages([
-                    'coupon_code' => ['A coupon cannot be used with an active product offer.'],
+                    'coupon_code' => [
+                        'A coupon cannot be used with an active product offer.',
+                    ],
                 ]);
             }
 
@@ -150,15 +157,25 @@ class CheckoutController extends Controller
                     ]);
                 }
 
-                if ($coupon->usage_limit !== null && $coupon->used_count >= $coupon->usage_limit) {
+                if (
+                    $coupon->usage_limit !== null
+                    && $coupon->used_count >= $coupon->usage_limit
+                ) {
                     throw ValidationException::withMessages([
-                        'coupon_code' => ['The coupon usage limit has been reached.'],
+                        'coupon_code' => [
+                            'The coupon usage limit has been reached.',
+                        ],
                     ]);
                 }
 
-                if ($coupon->minimum_order !== null && $subtotal < (float) $coupon->minimum_order) {
+                if (
+                    $coupon->minimum_order !== null
+                    && $subtotal < (float) $coupon->minimum_order
+                ) {
                     throw ValidationException::withMessages([
-                        'coupon_code' => ['The minimum order amount for this coupon has not been reached.'],
+                        'coupon_code' => [
+                            'The minimum order amount for this coupon has not been reached.',
+                        ],
                     ]);
                 }
 
@@ -172,7 +189,11 @@ class CheckoutController extends Controller
                         )];
 
                         $eligibleSubtotal = round(
-                            $eligibleSubtotal + ((float) $product['unit_price'] * $cartItem->quantity),
+                            $eligibleSubtotal
+                                + (
+                                    (float) $product['unit_price']
+                                    * $cartItem->quantity
+                                ),
                             2
                         );
                     }
@@ -180,13 +201,16 @@ class CheckoutController extends Controller
 
                 if ($eligibleSubtotal <= 0) {
                     throw ValidationException::withMessages([
-                        'coupon_code' => ['The coupon does not apply to any product in your cart.'],
+                        'coupon_code' => [
+                            'The coupon does not apply to any product in your cart.',
+                        ],
                     ]);
                 }
 
                 $couponDiscount = match ($coupon->discount_type) {
                     'percentage' => round(
-                        $eligibleSubtotal * ((float) $coupon->discount_amount / 100),
+                        $eligibleSubtotal
+                            * ((float) $coupon->discount_amount / 100),
                         2
                     ),
 
@@ -198,19 +222,51 @@ class CheckoutController extends Controller
                     default => 0,
                 };
 
-                $discountTotal = round($discountTotal + $couponDiscount, 2);
+                $discountTotal = round(
+                    $discountTotal + $couponDiscount,
+                    2
+                );
             }
 
-            $total = round(max(0, $subtotal - $discountTotal), 2);
+            /*
+             * Get the active default shipping method.
+             *
+             * Checkout does not accept a shipping_method_id from the client.
+             * The current active default is automatically applied.
+             */
+            $shippingMethod = ShippingMethod::query()
+                ->where('is_active', true)
+                ->where('is_default', true)
+                ->lockForUpdate()
+                ->first();
+
+            if (! $shippingMethod) {
+                throw ValidationException::withMessages([
+                    'shipping_method' => [
+                        'No default shipping method is available.',
+                    ],
+                ]);
+            }
+
+            $shippingTotal = (float) $shippingMethod->price;
+
+            $total = round(
+                max(0, $subtotal - $discountTotal) + $shippingTotal,
+                2
+            );
 
             $order = Order::create([
                 'user_id' => $user->id,
-                'number' => 'ORD-'.now()->format('Ymd').'-'.Str::upper(Str::random(8)),
+                'shipping_method_id' => $shippingMethod->id,
+                'number' => 'ORD-'
+                    . now()->format('Ymd')
+                    . '-'
+                    . Str::upper(Str::random(8)),
                 'status' => 'pending',
                 'currency' => 'EGP',
                 'subtotal' => $subtotal,
                 'discount_total' => $discountTotal,
-                'shipping_total' => 0,
+                'shipping_total' => $shippingTotal,
                 'total' => $total,
                 'shipping_address' => $data['shipping_address'],
             ]);
@@ -230,7 +286,14 @@ class CheckoutController extends Controller
 
             $cart->items()->delete();
 
-            return [$order->load('items', 'user'), $payment];
+            return [
+                $order->load([
+                    'items',
+                    'user',
+                    'shippingMethod',
+                ]),
+                $payment,
+            ];
         });
 
         $gateway = $paymentService->initiate($payment);

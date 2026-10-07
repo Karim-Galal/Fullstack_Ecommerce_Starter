@@ -12,13 +12,16 @@ class ShippingMethod extends Model
 
     protected $fillable = [
         'name',
+        'description',
         'price',
         'is_active',
+        'is_default',
     ];
 
     protected $casts = [
         'price' => 'decimal:2',
         'is_active' => 'boolean',
+        'is_default' => 'boolean',
     ];
 
     public function orders(): HasMany

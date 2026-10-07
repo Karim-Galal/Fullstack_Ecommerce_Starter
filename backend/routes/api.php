@@ -16,6 +16,7 @@ use App\Http\Controllers\Api\OfferController;
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\WishlistController;
 use App\Http\Controllers\Api\AddressController;
+use App\Http\Controllers\Api\ShippingMethodController;
 use App\Http\Controllers\Api\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -96,12 +97,20 @@ Route::prefix('v1')->group(function () {
     Route::patch('cart/items/{item}', [CartController::class, 'update']);
     Route::delete('cart/items/{item}', [CartController::class, 'destroy']);
 
+
     /*
     |--------------------------------------------------------------------------
     | Public Review Routes
     |--------------------------------------------------------------------------
     */
     Route::get('/reviews', [ReviewController::class, 'index']);
+
+    /*
+    |--------------------------------------------------------------------------
+    | Public shipping method Routes
+    |--------------------------------------------------------------------------
+    */
+    Route::get('shipping-methods', [ShippingMethodController::class, 'index']);
 
     /*
     |--------------------------------------------------------------------------
@@ -184,6 +193,8 @@ Route::prefix('v1')->group(function () {
             'addresses/{address}/default',
             [AddressController::class, 'setDefault']
         );
+
+
 
         /*
         |--------------------------------------------------------------------------
@@ -313,6 +324,21 @@ Route::prefix('v1')->group(function () {
 
             Route::get('orders', [OrderController::class, 'index']);
             Route::get('orders/{order}', [OrderController::class, 'show']);
+
+            /*
+            |--------------------------------------------------------------------------
+            | Admin Shipping Method Routes
+            |--------------------------------------------------------------------------
+            */
+            Route::controller(ShippingMethodController::class)->prefix('shipping-methods')->group(function () {
+                Route::get('/', 'adminIndex')->name('shipping-methods.index');
+                Route::get('{shippingMethod}', 'adminShow')->name('shipping-methods.show');
+                Route::post('/', 'store')->name('shipping-methods.store');
+                Route::patch('{shippingMethod}', 'update')->name('shipping-methods.update');
+                Route::patch('{shippingMethod}/default', 'setDefault')->name('shipping-methods.default');
+                Route::delete('{shippingMethod}', 'destroy')->name('shipping-methods.destroy');
+            });
+
 
             /*
             |--------------------------------------------------------------------------
