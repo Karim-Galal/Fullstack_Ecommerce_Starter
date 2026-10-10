@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\PaymentWebhookController;
 use App\Http\Controllers\Api\ProductController;
+use App\Http\Controllers\Api\ProductImageController;
 use App\Http\Controllers\Api\OfferController;
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\WishlistController;
@@ -219,7 +220,11 @@ Route::prefix('v1')->group(function () {
             Route::post('products', [ProductController::class, 'store']);
             Route::patch('products/{product}', [ProductController::class, 'update']);
             Route::delete('products/{product}', [ProductController::class, 'destroy']);
-
+            //Admin Product Image Routes
+            Route::post('products/{product}/images', [ProductImageController::class, 'store']);
+            Route::post('products/{product}/images/{image}/replace', [ProductImageController::class, 'replace']);
+            Route::patch('products/{product}/images/{image}', [ProductImageController::class, 'update']);
+            Route::delete('products/{product}/images/{image}', [ProductImageController::class, 'destroy']);
             /*
             |--------------------------------------------------------------------------
             | Admin Category Routes
