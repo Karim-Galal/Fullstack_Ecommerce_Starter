@@ -20,6 +20,7 @@ return new class extends Migration
             $table->decimal('shipping_total', 12, 2)->default(0);
             $table->decimal('total', 12, 2);
             $table->json('shipping_address');
+            $table->softDeletes();
             $table->timestamps();
         });
     }

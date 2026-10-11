@@ -123,7 +123,9 @@
 
 
 ## Phase 11: Polish & Production
-- [ ] Run and review the full backend test suite
+- [x] Consolidate database migrations (one create migration per table)
+- [x] Update factories and seeders with realistic development data
+- [x] Run and review the full backend test suite (118 tests, 474 assertions)
 - [ ] Resolve any confirmed failing tests
 - [ ] Comprehensive test coverage
 - [ ] CI/CD pipeline

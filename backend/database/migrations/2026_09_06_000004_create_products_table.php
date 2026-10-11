@@ -16,6 +16,7 @@ return new class extends Migration
             $table->decimal('price', 12, 2);
             $table->unsignedInteger('stock')->default(0);
             $table->boolean('is_active')->default(true);
+            $table->softDeletes();
             $table->timestamps();
             $table->unique('slug');
             $table->unique('sku');

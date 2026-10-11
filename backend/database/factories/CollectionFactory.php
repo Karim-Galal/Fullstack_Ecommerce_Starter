@@ -27,6 +27,7 @@ class CollectionFactory extends Factory
         return [
             'slug' => fake()->unique()->slug(),
             'is_active' => true,
+            'sort_order' => fake()->numberBetween(0, 100),
         ];
     }
 }

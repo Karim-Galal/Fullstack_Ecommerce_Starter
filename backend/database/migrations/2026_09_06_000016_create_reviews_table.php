@@ -15,6 +15,7 @@ return new class extends Migration
             $table->unsignedTinyInteger('rating');
             $table->text('comment')->nullable();
             $table->string('status')->default('pending');
+            $table->softDeletes();
             $table->timestamps();
             $table->unique(['product_id', 'user_id']);
         });

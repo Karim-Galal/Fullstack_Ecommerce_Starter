@@ -14,6 +14,7 @@ return new class extends Migration
             $table->string('slug');
             $table->boolean('is_active')->default(true);
             $table->unsignedInteger('sort_order')->default(0);
+            $table->softDeletes();
             $table->timestamps();
             $table->unique('slug');
             $table->index('parent_id');

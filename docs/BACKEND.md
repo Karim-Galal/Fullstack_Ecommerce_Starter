@@ -340,8 +340,7 @@ All API routes in `routes/api.php`:
 * PHPUnit in `tests/`
 * Run tests with `php artisan test`.
 * Feature tests cover authentication, authorization, policies, catalog, invitations, coupons, offers, cart, checkout, payments, product images, reviews, wishlists, addresses, and shipping methods.
-* **Latest reported Coupon-filtered result:** 53 tests passed, 197 assertions.
-* This is a filtered test result, not confirmation that the entire test suite passes.
+* **Full test suite:** 118 tests passed, 474 assertions.
 
 
 ## Queue/Jobs

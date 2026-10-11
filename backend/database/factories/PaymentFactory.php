@@ -32,10 +32,11 @@ class PaymentFactory extends Factory
             'currency' => 'EGP',
             'gateway' => fake()->randomElement(['stripe', 'paymob']),
             'payment_method' => fake()->optional()->word(),
-            'status' => fake()->randomElement(['unpaid', 'pending', 'paid', 'failed', 'refunded']),
+            'status' => fake()->randomElement(['unpaid', 'pending', 'paid', 'failed', 'refunded', 'expired']),
             'transaction_reference' => Str::uuid(),
             'gateway_reference' => fake()->optional()->uuid(),
             'paid_at' => fake()->optional()->dateTimeBetween('-1 month', 'now'),
+            'expires_at' => fake()->optional()->dateTimeBetween('now', '+1 month'),
             'gateway_metadata' => null,
         ];
     }

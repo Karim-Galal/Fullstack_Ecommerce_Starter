@@ -26,8 +26,10 @@ class ShippingMethodFactory extends Factory
     {
         return [
             'name' => fake()->randomElement(['Standard Shipping', 'Express Shipping', 'Next Day Delivery']),
+            'description' => fake()->optional()->sentence(),
             'price' => fake()->randomFloat(2, 0, 50),
             'is_active' => true,
+            'is_default' => false,
         ];
     }
 }

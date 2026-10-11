@@ -26,9 +26,11 @@ class CartFactory extends Factory
      */
     public function definition(): array
     {
+        $isGuest = fake()->boolean(50);
+
         return [
-            'user_id' => User::factory(),
-            'guest_token' => Str::uuid(),
+            'user_id' => $isGuest ? null : User::factory(),
+            'guest_token' => $isGuest ? Str::uuid() : null,
         ];
     }
 }

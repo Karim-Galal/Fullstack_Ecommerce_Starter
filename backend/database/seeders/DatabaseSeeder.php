@@ -15,7 +15,18 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             CategorySeeder::class,
             ProductSeeder::class,
+            CollectionSeeder::class,
             ShippingMethodSeeder::class,
+            AddressSeeder::class,
+            CartSeeder::class,
+            OrderSeeder::class,
+            PaymentSeeder::class,
+            CouponSeeder::class,
+            OfferSeeder::class,
+            ReviewSeeder::class,
+            InvitationSeeder::class,
+            WishlistSeeder::class,
+            ProductImageSeeder::class,
         ]);
     }
 }

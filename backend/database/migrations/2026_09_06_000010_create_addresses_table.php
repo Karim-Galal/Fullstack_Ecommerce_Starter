@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('country', 2);
             $table->string('postal_code')->nullable();
             $table->boolean('is_default')->default(false);
+            $table->softDeletes();
             $table->timestamps();
         });
     }

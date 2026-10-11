@@ -19,7 +19,9 @@ return new class extends Migration
             $table->string('transaction_reference')->unique();
             $table->string('gateway_reference')->nullable()->index();
             $table->timestamp('paid_at')->nullable();
+            $table->timestamp('expires_at')->nullable();
             $table->json('gateway_metadata')->nullable();
+            $table->softDeletes();
             $table->timestamps();
         });
     }

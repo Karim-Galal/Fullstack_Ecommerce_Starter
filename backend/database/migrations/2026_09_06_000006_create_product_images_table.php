@@ -12,9 +12,13 @@ return new class extends Migration
             $table->id();
             $table->foreignId('product_id')->constrained()->cascadeOnDelete();
             $table->string('path');
+            $table->string('disk')->default('public');
+            $table->string('processing_status')->default('ready');
+            $table->json('variants')->nullable();
             $table->string('alt')->nullable();
             $table->unsignedInteger('sort_order')->default(0);
             $table->boolean('is_primary')->default(false);
+            $table->softDeletes();
             $table->timestamps();
         });
     }
