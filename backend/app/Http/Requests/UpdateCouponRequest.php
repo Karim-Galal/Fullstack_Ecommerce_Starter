@@ -25,7 +25,7 @@ class UpdateCouponRequest extends FormRequest
             'starts_at'       => ['nullable', 'date'],
             'expires_at'      => ['nullable', 'date', 'after_or_equal:starts_at'],
             'is_active'       => ['sometimes', 'boolean'],
-            'product_ids'     => ['sometimes', 'array', 'min:1'],
+            'product_ids'     => ['sometimes', 'array'],
             'product_ids.*'   => ['integer', 'distinct', 'exists:products,id'],
         ];
 

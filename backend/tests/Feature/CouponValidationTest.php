@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Coupon;
 use App\Models\User;
+use App\Models\Product;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -375,5 +376,107 @@ class CouponValidationTest extends TestCase
 
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['discount_type']);
+    }
+
+    public function test_coupon_can_be_created_without_products(): void
+    {
+        $admin = $this->masterAdmin();
+
+        $response = $this->actingAs($admin, 'sanctum')
+            ->postJson('/api/v1/admin/coupons', $this->validPayload());
+
+        $response->assertStatus(201);
+
+        $coupon = Coupon::where('code', 'SAVE20')->firstOrFail();
+
+        $this->assertCount(0, $coupon->products);
+    }
+
+    public function test_coupon_can_be_created_with_products(): void
+    {
+        $admin = $this->masterAdmin();
+        $products = Product::factory()->count(2)->create();
+
+        $response = $this->actingAs($admin, 'sanctum')
+            ->postJson('/api/v1/admin/coupons', $this->validPayload([
+                'product_ids' => $products->modelKeys(),
+            ]));
+
+        $response->assertStatus(201);
+
+        $coupon = Coupon::where('code', 'SAVE20')->firstOrFail();
+
+        $this->assertCount(2, $coupon->products);
+    }
+
+    public function test_update_without_product_ids_keeps_existing_products(): void
+    {
+        $admin = $this->masterAdmin();
+        $coupon = Coupon::factory()->create();
+        $products = \App\Models\Product::factory()->count(2)->create();
+
+        $coupon->products()->sync($products->modelKeys());
+
+        $response = $this->actingAs($admin, 'sanctum')
+            ->patchJson("/api/v1/admin/coupons/{$coupon->id}", [
+                'minimum_order' => 50,
+            ]);
+
+        $response->assertStatus(200);
+
+        $this->assertEqualsCanonicalizing(
+            $products->modelKeys(),
+            $coupon->fresh()->products->modelKeys()
+        );
+    }
+
+    public function test_update_with_empty_product_ids_removes_product_links(): void
+    {
+        $admin = $this->masterAdmin();
+        $coupon = Coupon::factory()->create();
+        $products = \App\Models\Product::factory()->count(2)->create();
+
+        $coupon->products()->sync($products->modelKeys());
+
+        $response = $this->actingAs($admin, 'sanctum')
+            ->patchJson("/api/v1/admin/coupons/{$coupon->id}", [
+                'product_ids' => [],
+            ]);
+
+        $response->assertStatus(200);
+
+        $this->assertCount(0, $coupon->fresh()->products);
+    }
+
+    public function test_created_by_is_assigned_to_authenticated_admin(): void
+    {
+        $admin = $this->masterAdmin();
+
+        $this->actingAs($admin, 'sanctum')
+            ->postJson('/api/v1/admin/coupons', $this->validPayload());
+
+        $this->assertDatabaseHas('coupons', [
+            'code' => 'SAVE20',
+            'created_by' => $admin->id,
+        ]);
+    }
+
+    public function test_client_cannot_set_created_by_or_used_count(): void
+    {
+        $admin = $this->masterAdmin();
+        $otherUser = User::factory()->create();
+
+        $this->actingAs($admin, 'sanctum')
+            ->postJson('/api/v1/admin/coupons', $this->validPayload([
+                'created_by' => $otherUser->id,
+                'used_count' => 99,
+            ]))
+            ->assertStatus(201);
+
+        $this->assertDatabaseHas('coupons', [
+            'code' => 'SAVE20',
+            'created_by' => $admin->id,
+            'used_count' => 0,
+        ]);
     }
 }
