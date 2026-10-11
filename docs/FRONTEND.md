@@ -10,7 +10,7 @@
 frontend/
 ├── src/
 │   ├── app/
-│   │   ├── [locale]/          # i18n routing (empty)
+│   │   ├── [locale]/          # i18n routing (empty - no pages implemented)
 │   │   ├── admin/
 │   │   │   └── login/         # Empty directory
 │   │   ├── products/
@@ -78,7 +78,7 @@ export async function api(path, options = {}) {
 ## Internationalization
 - Route structure: `/[locale]/...` (e.g., `/en/products`, `/ar/products`)
 - Locale directories exist but empty
-- Navbar links to `/ar` for Arabic
+- Navbar links to `/ar` for Arabic (no actual Arabic pages)
 
 ## Current Pages
 | Route | File | Status |
@@ -117,5 +117,5 @@ npm run lint         # ESLint
 - Checkout form with shipping address
 - Payment integration (Stripe.js, Paymob)
 - User authentication pages (login, register, password reset)
-- Admin dashboard (products, categories, orders, invitations)
+- Admin dashboard (products, categories, collections, orders, invitations, coupons, offers)
 - RTL support for Arabic

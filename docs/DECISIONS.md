@@ -185,9 +185,10 @@ Keep coupons and offers as separate concepts with separate tables.
 
 ### Coupons
 - Code-based (e.g., "WELCOME10")
-- Customer enters at checkout
+- Customer enters at checkout (checkout integration not implemented yet)
 - Usage limits, expiry dates
 - Can be percentage or fixed amount discount
+- Admin management endpoints implemented (list/show/create/update/soft delete)
 
 ### Offers
 - Product promotions (potentially automatic)
@@ -202,7 +203,7 @@ Keep coupons and offers as separate concepts with separate tables.
 - Cleaner separation of concerns
 
 ### Status
-Accepted and implemented. Both models exist with distinct responsibilities.
+Accepted and implemented. Both models exist with distinct responsibilities. Coupon admin CRUD (with `created_by` audit field, soft deletes, and product eligibility via `coupon_products`) is implemented. Coupons ARE applied at checkout (validated against product eligibility, usage limits, dates, minimum order). Coupons cannot be combined with active product offers on any cart item.
 
 ---
 
@@ -299,6 +300,7 @@ The application initially used hard deletes for all entities. However, several e
 | Payment | Financial transaction records |
 | User | Account history; orders/invoices reference it |
 | Address | Order history references it |
+| Coupon | Promotional records with usage/audit history (`created_by`); deactivation via `is_active` alone is not enough |
 
 ### Entities Without Soft Deletes
 | Entity | Reason |
@@ -306,15 +308,18 @@ The application initially used hard deletes for all entities. However, several e
 | CartItem | Session/temporary; no historical value |
 | OrderItem | Already preserves historical snapshot (name, sku, unit_price, line_total) |
 | Translation tables | Tied to parent entity lifecycle |
-| Pivot tables (collection_product, offer_products, wishlists) | Simple relationships |
+| Pivot tables (collection_product, offer_products, coupon_products, wishlists) | Simple relationships |
 | Cart | Session/temporary |
-| ProductImage | Tied to product lifecycle |
-| Coupon | Deactivation via `is_active` is sufficient |
 | ShippingMethod | Deactivation via `is_active` is sufficient |
 | PaymentWebhookEvents | Idempotency tracking |
 | PushSubscription | Session-like, can be deleted |
 | Notification | Notification system handles lifecycle |
 | Invitation | Status field manages lifecycle |
+
+### Entities With Soft Deletes (Added Later)
+| Entity | Reason | Migration |
+|--------|--------|-----------|
+| ProductImage | Supports replacement workflow with 7-day cleanup retention | `2026_10_10_114422_add_processing_fields_to_product_images_table.php` |
 
 ### Behavior
 - Normal Eloquent queries automatically exclude soft-deleted records
@@ -332,3 +337,128 @@ The application initially used hard deletes for all entities. However, several e
 
 ### Status
 Accepted and implemented. Migrations created, models updated, tests passing.
+
+---
+
+## ADR-011: Product Image Processing Pipeline (2026-10-10)
+
+### Decision
+Implement a complete product image processing pipeline with upload, WebP variant generation, replacement workflow, and scheduled cleanup.
+
+### Context
+Products need multiple images with different sizes for various UI contexts (thumbnails, cards, detail pages). Images must be optimized for web delivery.
+
+### Design
+- **Upload**: Accept JPG/PNG/WebP, max 10MB, max 5 per batch via `POST /admin/products/{product}/images`
+- **Processing**: Async job (`ProcessProductImage`) creates WebP variants:
+  - `thumbnail`: 300px width
+  - `card`: 600px width
+  - `detail`: 1200px width
+  - Quality: 82%
+- **Storage**: Originals in `products/{id}/originals/`, variants in `products/{id}/images/{image_id}/{variant}.webp`
+- **Replacement**: `POST /admin/products/{product}/images/{image}/replace` - uploads new image, processes, swaps on success, schedules old for cleanup
+- **Primary Image**: First ready image becomes primary; can be changed via PATCH
+- **Deletion**: Soft delete image, schedule original + variants for 7-day cleanup via `product_image_cleanups` table
+- **Cleanup Command**: `php artisan product-images:cleanup` runs daily, permanently deletes expired files
+
+### Configuration (`config/product-images.php`)
+```php
+'disk' => env('PRODUCT_IMAGES_DISK', 'public'),
+'max_upload_kb' => 10240,
+'max_batch_size' => 5,
+'retention_days' => 7,
+'variants' => [
+    'thumbnail' => 300,
+    'card' => 600,
+    'detail' => 1200,
+],
+'webp_quality' => 82,
+```
+
+### Dependencies
+- **Intervention Image v3** for image processing
+- **Database queue** for async processing
+
+### Status
+Accepted and implemented. Upload, processing, replacement, deletion, and cleanup all working with tests.
+
+
+## ADR-012: Frontend Design System and Storefront Architecture (2026-10-11)
+
+### Decision
+
+Build the storefront using the existing Next.js App Router application, JavaScript/JSX, and Tailwind CSS v4.
+
+Establish a reusable design system before implementing the main storefront pages. Keep the application a single-store ecommerce system.
+
+### Context
+
+The backend provides the core ecommerce APIs, while frontend development is beginning.
+
+The frontend needs consistent visual styling, reusable layouts and components, localization, and a clear separation between public storefront pages and authenticated or administrative interfaces.
+
+### Design Principles
+
+- Inspect the existing frontend structure and dependencies before making changes.
+- Reuse existing components, utilities, and conventions whenever appropriate.
+- Use JavaScript/JSX only. Do not introduce TypeScript.
+- Use Tailwind CSS v4 and follow the existing project configuration.
+- Avoid unnecessary dependencies and premature abstractions.
+
+### Design System
+
+Define reusable design tokens for:
+
+- Brand and semantic colors
+- Typography and font scales
+- Spacing and sizing
+- Container and responsive layout behavior
+- Border radii, borders, and shadows
+- Component states, including hover, focus, disabled, loading, and error states
+
+Build reusable UI components where they provide genuine consistency across the application.
+
+The store's branding should be customizable for separate deployments without introducing multi-store architecture or unnecessary tenant management.
+
+### Layouts and Access
+
+Organize layouts and navigation according to the actual application requirements, including:
+
+- Public storefront and guest experiences
+- Authenticated customer experiences
+- Staff and master-admin interfaces
+
+Administrative navigation and actions must respect the existing backend authorization and permission system.
+
+Frontend visibility is not a replacement for backend authorization.
+
+### Localization and Direction
+
+Support English and Arabic interfaces with the appropriate LTR and RTL layouts.
+
+Use the existing localization approach where available. Avoid duplicating page implementations solely to support different languages.
+
+### API Integration
+
+Treat Laravel as the source of truth for business rules, authentication, authorization, validation, pricing, discounts, orders, and payment state.
+
+Inspect existing API routes, Form Requests, Resources, authentication middleware, and response formats before integrating each feature.
+
+Use Next.js Server and Client Components appropriately. Follow the existing Sanctum session, CSRF, cookie, and API-client conventions rather than introducing a conflicting authentication flow.
+
+### Implementation Strategy
+
+Develop incrementally:
+
+1. Inspect and document the existing frontend structure.
+2. Establish design tokens, global styles, fonts, and localization foundations.
+3. Build shared layouts and UI primitives.
+4. Implement storefront features using the existing APIs.
+5. Implement authenticated customer and administrative interfaces.
+6. Verify responsive behavior, accessibility, localization, and API error handling.
+
+Do not rebuild backend functionality or modify unrelated backend features as part of frontend implementation.
+
+### Status
+
+Accepted as the guiding direction for frontend development. Individual implementation items must be verified as they are completed.

@@ -38,15 +38,16 @@
 - [ ] Checkout page (`/checkout`)
   - Shipping address form
   - Payment method selection (Stripe/Paymob)
+  - Coupon code entry
   - Order summary
   - Redirect to payment provider
 
 ## Phase 3: Payment Integration
-- [ ] Stripe Elements integration
-- [ ] Paymob integration
-- [ ] Webhook handling verification
+- [ ] Stripe Elements integration (frontend)
+- [ ] Paymob integration (frontend)
+- [ ] Verify Stripe and Paymob webhook behavior with relevant tests
 - [ ] Order confirmation page
-- [ ] Email confirmation (queue job)
+- [ ] Implement and verify actual email delivery in SendOrderConfirmation
 
 ## Phase 4: Admin Panel
 - [ ] Admin login page (`/admin/login`)
@@ -54,12 +55,16 @@
 - [ ] Product management
   - List with search/filter
   - Create/edit form (translations, images, pricing, stock)
-  - Image upload (multiple, drag-drop)
+  - Image upload (multiple, drag-drop, WebP variants preview)
   - Delete with confirmation
 - [ ] Category management
   - Tree view with drag-drop reorder
   - Create/edit form (translations)
   - Delete with cascade handling
+- [ ] Collection management
+  - List with search/filter
+  - Create/edit form (translations, product assignment)
+  - Delete
 - [ ] Order management
   - List with status filters
   - Detail view
@@ -67,43 +72,67 @@
 - [ ] Invitation management
   - Invite staff/master_admin
   - Approve/reject/revoke
+- [ ] Coupon management UI
+- [ ] Offer management UI
+- [ ] Shipping method management
+- [ ] User management
 
 ## Phase 5: Promotions & Offers
-- [ ] Offer admin UI
+- [x] Coupon admin API
+  - List/show/create/update/soft-delete at `/admin/coupons`
+  - `coupons.view|create|update|delete` permissions via CouponPolicy
+  - `created_by` audit field, SoftDeletes
+  - Product eligibility via `coupon_products` pivot
+  - Coupon validation and application at checkout
+- [ ] Coupon admin UI
+- [x] Offer admin API
   - Create percentage/fixed_price/buy_x_get_y offers
   - Assign products to offers
   - Schedule start/end dates
+  - Automatic application at checkout
+- [ ] Offer admin UI
 - [ ] Offer display on product pages
-- [ ] Cart-level offer application
-- [ ] Coupon code entry at checkout
 
-## Phase 5: Addresses & Shipping
-- [ ] Customer address book
-- [ ] Shipping method management
-- [ ] Address selection at checkout
+## Phase 6: Reviews & Wishlist
+- [x] Review API (customer create, user reviews, admin moderate)
+- [ ] Review UI on product pages
+- [x] Wishlist API (authenticated user)
+- [ ] Wishlist UI
 
-## Phase 6: Notifications & Push
+## Phase 7: Addresses & Shipping
+- [x] Customer address book API
+- [x] Shipping method management API
+- [x] Default shipping method auto-applied at checkout
+- [ ] Address selection at checkout (frontend)
+
+## Phase 8: Notifications & Push
 - [ ] Database notifications (in-app)
 - [ ] Realtime notifications (Laravel Reverb + Echo)
 - [ ] Browser push notifications (Web Push)
-- [ ] Email notification templates
+- [ ] Email notification templates (order confirmation, shipping updates, etc.)
 
-## Phase 6: Invoices
+## Phase 9: Invoices
 - [ ] Invoice admin UI
   - List/generate invoices
   - PDF generation
 
-## Phase 7: Polish & Production
-- [ ] Image processing pipeline (validation, resize, compress, WebP, variants)
+## Phase 10: Image Processing & Performance
+- [x] Image upload, WebP variants (thumbnail/card/detail), replacement, 7-day cleanup
 - [ ] Redis caching for catalog queries
+- [ ] Image CDN integration
+
+
+## Phase 11: Polish & Production
+- [ ] Run and review the full backend test suite
+- [ ] Resolve any confirmed failing tests
 - [ ] Comprehensive test coverage
 - [ ] CI/CD pipeline
-- [ ] Monitoring/logging
+- [ ] Monitoring and logging review
 - [ ] Performance optimization
 - [ ] Security audit
 
 ## Technical Debt / Nice-to-Have
-- [ ] Product reviews/ratings
+- [ ] Product reviews/ratings UI
 - [ ] Wishlist UI
 - [ ] Advanced shipping rules
 - [ ] Order history for customers
@@ -111,3 +140,6 @@
 - [ ] Advanced search (Algolia/Meilisearch)
 - [ ] PWA support
 - [ ] Accessibility audit (WCAG 2.1 AA)
+- [ ] Implement actual email sending in SendOrderConfirmation job
+- [ ] Schedule PaymentExpirationJob verification
+- [ ] Rate limiter for cart/checkout endpoints

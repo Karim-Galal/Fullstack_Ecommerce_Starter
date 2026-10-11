@@ -1,7 +1,7 @@
 # Database Schema
 
 ## Overview
-Single-store ecommerce database. All tables use `unsignedBigInteger` foreign keys with cascade delete. No `store_id` columns. Selected tables use Soft Deletes for audit trail and historical data preservation.
+Single-store ecommerce database. All tables use `unsignedBigInteger` foreign keys with cascade delete. No `store_id` columns. Selected tables use Soft Deletes for audit trail and historical data preservation. Audit references that must survive user deletion use `nullOnDelete` (e.g. `coupons.created_by`, `offers.created_by`).
 
 ## Entity Relationship Diagram
 
@@ -28,31 +28,52 @@ Single-store ecommerce database. All tables use `unsignedBigInteger` foreign key
                       │ name             │       │ id (PK)         │
                       │ description      │       │ product_id (FK) │
                       │ meta_title       │       │ path            │
-                      │ meta_description │       │ alt             │
-                      └──────────────────┘       │ sort_order      │
-                                                │ is_primary      │
-                      ┌──────────────────┐       │ created_at      │
-                      │product_translations      │ updated_at      │
-                      ├──────────────────┤       └─────────────────┘
-                      │ id (PK)          │
-                      │ product_id (FK)  │
-                      │ locale           │
-                      │ name             │
+                      │ meta_description │       │ disk            │
+                      └──────────────────┘       │ processing_status│
+                                                 │ variants        │
+                      ┌──────────────────┐       │ alt             │
+                      │product_translations      │ sort_order      │
+                      ├──────────────────┤       │ is_primary      │
+                      │ id (PK)          │       │ deleted_at      │
+                      │ product_id (FK)  │       │ created_at      │
+                      │ locale           │       │ updated_at      │
+                      │ name             │       └─────────────────┘
                       │ description      │
                       │ meta_title       │
                       │ meta_description │
                       └──────────────────┘
+
+┌──────────────────────┐        ┌──────────────────────────┐
+│     collections      │        │ collection_translations  │
+├──────────────────────┤        ├──────────────────────────┤
+│ id (PK)              │        │ id (PK)                  │
+│ slug (UQ)            │        │ collection_id (FK)       │
+│ is_active            │        │ locale                   │
+│ sort_order           │        │ name                     │
+│ deleted_at           │        │ description              │
+│ created_at           │        │ meta_title               │
+│ updated_at           │        │ meta_description         │
+└──────────────────────┘        │ created_at               │
+                                 │ updated_at               │
+┌──────────────────────┐        └──────────────────────────┘
+│ collection_product   │
+├──────────────────────┤
+│ collection_id (FK)   │
+│ product_id (FK)      │
+│ PK(collection_id,    │
+│   product_id)        │
+└──────────────────────┘
 
 ┌─────────────┐       ┌─────────────┐       ┌─────────────────┐
 │   carts     │       │  cart_items │       │    orders       │
 ├─────────────┤       ├─────────────┤       ├─────────────────┤
 │ id (PK)     │       │ id (PK)     │       │ id (PK)         │
 │ user_id(FK) │◄──────│ cart_id(FK) │       │ user_id (FK)    │
-│ guest_token │       │ product_id(FK)       │ shipping_method_id
+│ guest_token │       │ product_id(FK)      │ shipping_method_id
 │ created_at  │       │ quantity    │       │ number (UQ)     │
 │ updated_at  │       └─────────────┘       │ status          │
 └─────────────┘                             │ currency        │
-                                            │ subtotal        │
+                                             │ subtotal        │
 ┌─────────────────┐                         │ discount_total  │
 │  order_items    │                         │ shipping_total  │
 ├─────────────────┤                         │ total           │
@@ -65,7 +86,7 @@ Single-store ecommerce database. All tables use `unsignedBigInteger` foreign key
 │ quantity        │                         ┌─────────────────┐
 │ line_total      │                         │   payments      │
 └─────────────────┘                         ├─────────────────┤
-                                            │ id (PK)         │
+                                             │ id (PK)         │
 ┌─────────────────┐                         │ order_id (FK)   │
 │  invoices       │                         │ amount          │
 ├─────────────────┤                         │ currency        │
@@ -76,31 +97,13 @@ Single-store ecommerce database. All tables use `unsignedBigInteger` foreign key
 │ currency        │                         │ gateway_ref     │
 │ subtotal        │                         │ paid_at         │
 │ discount_total  │                         │ gateway_metadata│
-│ shipping_total  │                         │ created_at      │
-│ total           │                         │ updated_at      │
-│ issued_at       │                         └─────────────────┘
-│ created_at      │
+│ shipping_total  │                         │ expires_at      │
+│ total           │                         │ deleted_at      │
+│ issued_at       │                         │ created_at      │
+│ deleted_at      │                         │ updated_at      │
+│ created_at      │                         └─────────────────┘
 │ updated_at      │
 └─────────────────┘
-
-┌──────────────────────┐        ┌──────────────────────────┐
-│     collections      │        │ collection_translations  │
-├──────────────────────┤        ├──────────────────────────┤
-│ id (PK)              │        │ id (PK)                  │
-│ slug (UQ)            │        │ collection_id (FK)       │
-│ is_active            │        │ locale                   │
-│ created_at           │        │ name                     │
-│ updated_at           │        │ description              │
-└──────────────────────┘        │ meta_title               │
-                                 │ meta_description         │
-┌──────────────────────┐        │ created_at               │
-│ collection_product   │        │ updated_at               │
-├──────────────────────┤        └──────────────────────────┘
-│ collection_id (FK)   │
-│ product_id (FK)      │
-│ PK(collection_id,    │
-│   product_id)        │
-└──────────────────────┘
 
 ┌─────────────────┐       ┌─────────────────────┐
 │     offers      │       │   offer_products    │
@@ -114,6 +117,27 @@ Single-store ecommerce database. All tables use `unsignedBigInteger` foreign key
 │ starts_at       │       │   product_id)       │
 │ ends_at         │       └─────────────────────┘
 │ is_active       │
+│ created_by      │
+│ deleted_at      │
+│ created_at      │
+│ updated_at      │
+└─────────────────┘
+
+┌─────────────────┐       ┌─────────────────────┐
+│    coupons      │       │  coupon_products    │
+├─────────────────┤       ├─────────────────────┤
+│ id (PK)         │       │ coupon_id (FK)      │
+│ created_by (FK) │       │ product_id (FK)     │
+│ code (UQ)       │       │ PK(coupon_id,       │
+│ discount_type   │       │   product_id)       │
+│ discount_amount │       └─────────────────────┘
+│ minimum_order   │
+│ usage_limit     │
+│ used_count      │
+│ starts_at       │
+│ expires_at      │
+│ is_active       │
+│ deleted_at      │
 │ created_at      │
 │ updated_at      │
 └─────────────────┘
@@ -134,7 +158,6 @@ Single-store ecommerce database. All tables use `unsignedBigInteger` foreign key
 └─────────────────────┘
 
 Other tables:
-- coupons
 - reviews
 - wishlists (pivot: user_id, product_id)
 - shipping_methods
@@ -201,7 +224,36 @@ Other tables:
 | id | unsignedBigInteger | PK, AI |
 | slug | string(255) | UQ |
 | is_active | boolean | default: true |
+| sort_order | unsignedInteger | default: 0 |
 | deleted_at | timestamp | nullable |
+| created_at | timestamp | |
+| updated_at | timestamp | |
+
+### product_images
+| Column | Type | Constraints |
+|--------|------|-------------|
+| id | unsignedBigInteger | PK, AI |
+| product_id | unsignedBigInteger | FK products.id cascadeOnDelete |
+| path | string(255) | |
+| disk | string(255) | default: 'public' |
+| processing_status | string(50) | default: 'ready' (pending, ready, failed) |
+| variants | json | nullable (thumbnail, card, detail paths) |
+| alt | string(255) | nullable |
+| sort_order | unsignedInteger | default: 0 |
+| is_primary | boolean | default: false |
+| deleted_at | timestamp | nullable |
+| created_at | timestamp | |
+| updated_at | timestamp | |
+
+### product_image_cleanups
+| Column | Type | Constraints |
+|--------|------|-------------|
+| id | unsignedBigInteger | PK, AI |
+| disk | string(255) | default: 'public' |
+| paths | json | |
+| delete_after | timestamp | indexed |
+| attempts | unsignedInteger | default: 0 |
+| last_error | text | nullable |
 | created_at | timestamp | |
 | updated_at | timestamp | |
 
@@ -246,6 +298,7 @@ Other tables:
 | gateway_reference | string(100) | nullable, index |
 | paid_at | timestamp | nullable |
 | gateway_metadata | json | nullable |
+| expires_at | timestamp | nullable |
 | deleted_at | timestamp | nullable |
 | created_at | timestamp | |
 | updated_at | timestamp | |
@@ -279,6 +332,7 @@ Other tables:
 | starts_at | timestamp | nullable |
 | ends_at | timestamp | nullable |
 | is_active | boolean | default: true |
+| created_by | unsignedBigInteger | nullable, FK users.id nullOnDelete |
 | deleted_at | timestamp | nullable |
 | created_at | timestamp | |
 | updated_at | timestamp | |
@@ -293,34 +347,30 @@ Other tables:
 | updated_at | timestamp | |
 | UQ(offer_id, product_id) | | |
 
-### push_subscriptions
-| Column | Type | Constraints |
-|--------|------|-------------|
-| id | unsignedBigInteger | PK, AI |
-| user_id | unsignedBigInteger | FK users.id cascadeOnDelete |
-| endpoint | text | |
-| public_key | text | |
-| auth_token | text | |
-| content_encoding | string(50) | nullable |
-| created_at | timestamp | |
-| updated_at | timestamp | |
-| UQ(user_id, endpoint) | | |
-
 ### coupons
 | Column | Type | Constraints |
 |--------|------|-------------|
 | id | unsignedBigInteger | PK, AI |
-| code | string(100) | UQ |
+| created_by | unsignedBigInteger | nullable FK users.id nullOnDelete (admin who created it) |
+| code | string(255) | UQ (unique including soft-deleted rows) |
 | discount_type | string(50) | 'percentage' or 'fixed' |
-| discount_amount | decimal(12,2) | |
-| minimum_order | decimal(12,2) | nullable |
-| usage_limit | unsignedInteger | nullable |
-| used_count | unsignedInteger | default: 0 |
+| discount_amount | decimal(12,2) | > 0; <= 100 when discount_type = 'percentage' |
+| minimum_order | decimal(12,2) | nullable, >= 0 |
+| usage_limit | unsignedInteger | nullable, >= 1 |
+| used_count | unsignedInteger | default: 0, system-controlled (not client-writable) |
 | starts_at | timestamp | nullable |
-| expires_at | timestamp | nullable |
+| expires_at | timestamp | nullable, must not be before starts_at |
 | is_active | boolean | default: true |
+| deleted_at | timestamp | nullable (soft delete) |
 | created_at | timestamp | |
 | updated_at | timestamp | |
+
+### coupon_products (pivot)
+| Column | Type | Constraints |
+|--------|------|-------------|
+| coupon_id | unsignedBigInteger | FK coupons.id cascadeOnDelete |
+| product_id | unsignedBigInteger | FK products.id cascadeOnDelete |
+| PK(coupon_id, product_id) | | |
 
 ### reviews
 | Column | Type | Constraints |
@@ -353,6 +403,7 @@ Other tables:
 | name | string(255) | |
 | price | decimal(12,2) | |
 | is_active | boolean | default: true |
+| is_default | boolean | default: false |
 | created_at | timestamp | |
 | updated_at | timestamp | |
 
@@ -420,23 +471,25 @@ Other tables:
 - `users`: email (UQ), role, status, google_id (UQ), deleted_at
 - `categories`: slug (UQ), parent_id, deleted_at
 - `products`: slug (UQ), sku (UQ), category_id, is_active, deleted_at
-- `collections`: slug (UQ), deleted_at
+- `collections`: slug (UQ), is_active, deleted_at
+- `product_images`: product_id, processing_status, deleted_at
+- `product_image_cleanups`: delete_after
 - `carts`: user_id, guest_token (UQ)
 - `orders`: number (UQ), status, user_id, deleted_at
 - `payments`: transaction_reference (UQ), gateway_reference, status, order_id, deleted_at
 - `invoices`: order_id (UQ), number (UQ), deleted_at
-- `offers`: is_active, deleted_at
+- `offers`: is_active, created_by, deleted_at
 - `offer_products`: UQ(offer_id, product_id)
-- `push_subscriptions`: UQ(user_id, endpoint)
-- `coupons`: code (UQ)
+- `coupons`: code (UQ), created_by, deleted_at
+- `coupon_products`: PK(coupon_id, product_id)
 - `reviews`: UQ(product_id, user_id), deleted_at
 - `wishlists`: UQ(user_id, product_id)
-- `shipping_methods`: is_active
+- `shipping_methods`: is_active, is_default
 - `addresses`: user_id, deleted_at
 - `invitations`: token_hash (UQ), status, created_by, invited_email
 - `notifications`: notifiable_type + notifiable_id (morphs)
 
-## Migrations
+## Migrations (in order)
 1. `0001_01_01_000000_create_users_table.php` - users + password_reset_tokens + sessions
 2. `2026_09_06_000001_create_categories_table.php`
 3. `2026_09_06_000002_create_category_translations_table.php`
@@ -454,23 +507,32 @@ Other tables:
 15. `2026_09_06_000013_create_order_items_table.php`
 16. `2026_09_06_000014_create_payments_table.php`
 17. `2026_09_06_000015_create_coupons_table.php`
-17. `2026_09_06_000016_create_reviews_table.php`
-18. `2026_09_06_000017_create_wishlists_table.php`
-19. `2026_09_06_000018_create_invitations_table.php`
-20. `2026_09_25_093937_create_collection_translations_table.php`
-21. `2026_09_25_182657_create_invoices_table.php`
-22. `2026_09_25_182714_create_offers_table.php`
-23. `2026_09_25_182725_create_offer_products_table.php`
-24. `2026_09_25_182732_create_push_subscriptions_table.php`
-25. `2026_09_25_182911_create_notifications_table.php`
-26. `2026_09_06_112215_create_personal_access_tokens_table.php`
-27. `2026_09_28_092321_add_deleted_at_to_products_table.php`
-28. `2026_09_28_092336_add_deleted_at_to_categories_table.php`
-29. `2026_09_28_092454_add_deleted_at_to_collections_table.php`
-29. `2026_09_28_092510_add_deleted_at_to_offers_table.php`
-30. `2026_09_28_092524_add_deleted_at_to_reviews_table.php`
-31. `2026_09_28_092541_add_deleted_at_to_orders_table.php`
-32. `2026_09_28_092605_add_deleted_at_to_invoices_table.php`
-33. `2026_09_28_092621_add_deleted_at_to_payments_table.php`
-34. `2026_09_28_092638_add_deleted_at_to_users_table.php`
-35. `2026_09_28_092707_add_deleted_at_to_addresses_table.php`
+18. `2026_09_06_000016_create_reviews_table.php`
+19. `2026_09_06_000017_create_wishlists_table.php`
+20. `2026_09_06_000018_create_invitations_table.php`
+21. `2026_09_25_093937_create_collection_translations_table.php`
+22. `2026_09_25_182657_create_invoices_table.php`
+23. `2026_09_25_182714_create_offers_table.php`
+24. `2026_09_25_182725_create_offer_products_table.php`
+25. `2026_09_25_182732_create_push_subscriptions_table.php`
+26. `2026_09_25_182911_create_notifications_table.php`
+27. `2026_09_06_112215_create_personal_access_tokens_table.php`
+28. `2026_09_28_092321_add_deleted_at_to_products_table.php`
+29. `2026_09_28_092336_add_deleted_at_to_categories_table.php`
+30. `2026_09_28_092454_add_deleted_at_to_collections_table.php`
+31. `2026_09_28_092510_add_deleted_at_to_offers_table.php`
+32. `2026_09_28_092524_add_deleted_at_to_reviews_table.php`
+33. `2026_09_28_092541_add_deleted_at_to_orders_table.php`
+34. `2026_09_28_092605_add_deleted_at_to_invoices_table.php`
+35. `2026_09_28_092621_add_deleted_at_to_payments_table.php`
+36. `2026_09_28_092638_add_deleted_at_to_users_table.php`
+37. `2026_09_28_092707_add_deleted_at_to_addresses_table.php`
+38. `2026_10_03_194604_add_expires_at_to_payments_table.php`
+39. `2026_10_04_154902_add_sort_order_to_collections_table.php`
+40. `2026_10_05_000001_add_created_by_to_coupons_table.php`
+41. `2026_10_05_000002_add_deleted_at_to_coupons_table.php`
+42. `2026_10_05_191634_create_coupon_products_table.php`
+43. `2026_10_10_114422_add_processing_fields_to_product_images_table.php`
+44. `2026_10_10_114433_create_product_image_cleanups_table.php`
+45. `2026_09_06_000001_create_cache_table.php`
+46. `2026_09_06_000002_create_jobs_table.php`
