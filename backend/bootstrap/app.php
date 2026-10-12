@@ -11,6 +11,9 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Laravel\Sanctum\Http\Middleware\AuthenticateSession;
+use App\Http\Middleware\SetLocale;
+use Illuminate\Support\Facades\Lang;
+
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -21,6 +24,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->group('api', [
+            SetLocale::class,
             AuthenticateSession::class,
             EncryptCookies::class,
             AddQueuedCookiesToResponse::class,
@@ -45,7 +49,8 @@ return Application::configure(basePath: dirname(__DIR__))
         ) {
             if ($request->is('api/*')) {
                 return response()->json([
-                    'message' => 'Unauthenticated.',
+                    // 'message' => 'Unauthenticated.',
+                    'message' => __('api.unauthenticated'),
                 ], 401);
             }
         });
