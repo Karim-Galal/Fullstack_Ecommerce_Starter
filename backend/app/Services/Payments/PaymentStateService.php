@@ -56,7 +56,7 @@ class PaymentStateService
     {
         if (round((float) $payment->amount, 2) !== round((float) $payment->order->total, 2)) {
             throw ValidationException::withMessages([
-                'payment' => ['Payment amount does not match its order.'],
+                'payment' => [__('api.payment_amount_mismatch')],
             ]);
         }
     }
@@ -65,7 +65,7 @@ class PaymentStateService
     {
         if (! in_array($next, $this->allowedTransitions[$current] ?? [], true)) {
             throw ValidationException::withMessages([
-                'payment' => ['Invalid payment state transition.'],
+                'payment' => [__('api.payment_invalid_state_transition')],
             ]);
         }
     }

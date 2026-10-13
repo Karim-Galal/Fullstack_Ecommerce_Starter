@@ -36,7 +36,7 @@ class WishlistController extends Controller
         if (! $product) {
             throw ValidationException::withMessages([
                 'product_id' => [
-                    'The selected product is not available.',
+                    __('api.wishlist_product_unavailable'),
                 ],
             ]);
         }
@@ -49,7 +49,7 @@ class WishlistController extends Controller
         if ($existing) {
             throw ValidationException::withMessages([
                 'product_id' => [
-                    'This product is already in your wishlist.',
+                    __('api.wishlist_already_exists'),
                 ],
             ]);
         }
@@ -76,7 +76,7 @@ class WishlistController extends Controller
         if (! $wishlist) {
             throw ValidationException::withMessages([
                 'product_id' => [
-                    'This product is not in your wishlist.',
+                    __('api.wishlist_item_not_found'),
                 ],
             ]);
         }

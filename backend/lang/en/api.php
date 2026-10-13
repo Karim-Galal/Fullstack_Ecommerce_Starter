@@ -26,4 +26,48 @@ return [
     'replacement_uploaded_queued' => 'Replacement uploaded and queued for processing.',
     'product_image_updated' => 'Product image updated successfully.',
     'image_deleted_retention' => 'Image deleted. Its files will be permanently removed after the retention period.',
+    'invitation_invalid_or_expired' => 'The invitation is invalid or has expired.',
+    'invitation_email_mismatch' => 'The invitation email does not match.',
+    'invitation_email_already_registered' => 'This email address is already registered.',
+    'invitation_must_be_accepted' => 'Only accepted invitations can be approved or rejected.',
+    'invitation_inactive_user_not_found' => 'No inactive user is associated with this invitation.',
+    'invitation_must_be_pending' => 'Only pending invitations can be revoked.',
+
+    'category_cannot_be_own_parent' => 'A category cannot be its own parent.',
+    'category_hierarchy_cycle' => 'The category hierarchy cannot contain a cycle.',
+
+    'checkout_cart_empty' => 'Your cart is empty.',
+    'checkout_item_unavailable' => 'An item in your cart is unavailable.',
+    'coupon_conflicts_with_offer' => 'This coupon cannot be used with an active product offer.',
+    'coupon_invalid' => 'The coupon is invalid.',
+    'coupon_inactive' => 'This coupon is inactive.',
+    'coupon_not_started' => 'This coupon is not active yet.',
+    'coupon_expired' => 'This coupon has expired.',
+    'coupon_usage_limit_reached' => 'This coupon has reached its usage limit.',
+    'coupon_minimum_order_not_met' => 'The minimum order amount for this coupon has not been met.',
+    'coupon_no_matching_products' => 'This coupon does not apply to any products in your cart.',
+    'checkout_no_default_shipping_method' => 'No default shipping method is available.',
+
+    'collection_english_translation_required' => 'An English translation is required when no slug is provided.',
+    'collection_invalid_slug' => 'The slug format is invalid.',
+    'collection_slug_already_exists' => 'This slug already exists.',
+
+    'review_purchase_required' => 'You can only review products you have purchased.',
+    'review_already_exists' => 'You have already reviewed this product.',
+
+    'shipping_default_cannot_deactivate' => 'The default shipping method cannot be deactivated.',
+    'shipping_inactive_cannot_be_default' => 'An inactive shipping method cannot be set as the default.',
+    'shipping_default_cannot_delete' => 'The default shipping method cannot be deleted.',
+    'shipping_at_least_one_required' => 'At least one shipping method must remain active.',
+    'verification_link_invalid' => 'Invalid verification link.',
+
+    'wishlist_product_unavailable' => 'This product is unavailable.',
+    'wishlist_already_exists' => 'This product is already in your wishlist.',
+    'wishlist_item_not_found' => 'This product is not in your wishlist.',
+
+    'payment_must_be_pending' => 'Only pending payments can be initiated.',
+    'payment_expired' => 'This payment has expired and cannot be initiated.',
+    'payment_must_be_paid_for_refund' => 'Only paid payments can be refunded.',
+    'payment_amount_mismatch' => 'The payment amount does not match the expected amount.',
+    'payment_invalid_state_transition' => 'Invalid payment state transition.',
 ];

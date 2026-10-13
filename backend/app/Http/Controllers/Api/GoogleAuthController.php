@@ -66,14 +66,14 @@ class GoogleAuthController extends Controller
             $token = $user->createToken($request->device_name)->plainTextToken;
 
             return response()->json([
-                'message' => 'Google login successful',
+                'message' => __('api.google_login_successful'),
                 'user' => new UserResource($user),
                 'token' => $token,
             ]);
         }
 
         return response()->json([
-            'message' => 'Google login successful',
+            'message' => __('api.google_login_successful'),
             'user' => new UserResource($user),
         ]);
     }

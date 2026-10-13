@@ -155,14 +155,14 @@ class CategoryController extends Controller
 
         if ($category && $parent->id === $category->id) {
             throw ValidationException::withMessages([
-                'parent_id' => ['A category cannot be its own parent.'],
+                'parent_id' => [__('api.category_cannot_be_own_parent')],
             ]);
         }
 
         while ($category && $parent) {
             if ($parent->id === $category->id) {
                 throw ValidationException::withMessages([
-                    'parent_id' => ['Category hierarchy cannot contain a cycle.'],
+                    'parent_id' => [__('api.category_hierarchy_cycle')],
                 ]);
             }
 

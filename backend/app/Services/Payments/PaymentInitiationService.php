@@ -13,13 +13,13 @@ class PaymentInitiationService
     {
         if ($payment->status !== 'pending') {
             throw ValidationException::withMessages([
-                'payment' => ['Only pending payments can be initiated.'],
+                'payment' => [__('api.payment_must_be_pending')],
             ]);
         }
 
         if ($payment->expires_at && $payment->expires_at->isPast()) {
             throw ValidationException::withMessages([
-                'payment' => ['This payment has expired and cannot be initiated.'],
+                'payment' => [__('api.payment_expired')],
             ]);
         }
 

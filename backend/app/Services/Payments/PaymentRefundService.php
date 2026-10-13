@@ -13,7 +13,7 @@ class PaymentRefundService
     {
         if ($payment->status !== 'paid') {
             throw ValidationException::withMessages([
-                'payment' => ['Only paid payments can be refunded.'],
+                'payment' => [__('api.payment_must_be_paid_for_refund')],
             ]);
         }
 

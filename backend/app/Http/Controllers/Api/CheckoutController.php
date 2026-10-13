@@ -34,7 +34,7 @@ class CheckoutController extends Controller
 
             if (! $cart || $cart->items->isEmpty()) {
                 throw ValidationException::withMessages([
-                    'cart' => ['Cart is empty.'],
+                    'cart' => [__('api.checkout_cart_empty')],
                 ]);
             }
 
@@ -53,7 +53,7 @@ class CheckoutController extends Controller
 
                 if (! $product->is_active || $product->stock < $cartItem->quantity) {
                     throw ValidationException::withMessages([
-                        'cart' => ['An item is no longer available.'],
+                        'cart' => [__('api.checkout_item_unavailable')],
                     ]);
                 }
 
@@ -120,7 +120,7 @@ class CheckoutController extends Controller
             if ($hasValidOffer && ! empty($data['coupon_code'])) {
                 throw ValidationException::withMessages([
                     'coupon_code' => [
-                        'A coupon cannot be used with an active product offer.',
+                        __('api.coupon_conflicts_with_offer'),
                     ],
                 ]);
             }
@@ -133,7 +133,7 @@ class CheckoutController extends Controller
 
                 if (! $coupon) {
                     throw ValidationException::withMessages([
-                        'coupon_code' => ['The coupon code is invalid.'],
+                        'coupon_code' => [__('api.coupon_invalid')],
                     ]);
                 }
 
@@ -141,19 +141,19 @@ class CheckoutController extends Controller
 
                 if (! $coupon->is_active) {
                     throw ValidationException::withMessages([
-                        'coupon_code' => ['The coupon is inactive.'],
+                        'coupon_code' => [__('api.coupon_inactive')],
                     ]);
                 }
 
                 if ($coupon->starts_at && $coupon->starts_at > $now) {
                     throw ValidationException::withMessages([
-                        'coupon_code' => ['The coupon is not active yet.'],
+                        'coupon_code' => [__('api.coupon_not_started')],
                     ]);
                 }
 
                 if ($coupon->expires_at && $coupon->expires_at < $now) {
                     throw ValidationException::withMessages([
-                        'coupon_code' => ['The coupon has expired.'],
+                        'coupon_code' => [__('api.coupon_expired')],
                     ]);
                 }
 
@@ -163,7 +163,7 @@ class CheckoutController extends Controller
                 ) {
                     throw ValidationException::withMessages([
                         'coupon_code' => [
-                            'The coupon usage limit has been reached.',
+                            __('api.coupon_usage_limit_reached'),
                         ],
                     ]);
                 }
@@ -174,7 +174,7 @@ class CheckoutController extends Controller
                 ) {
                     throw ValidationException::withMessages([
                         'coupon_code' => [
-                            'The minimum order amount for this coupon has not been reached.',
+                            __('api.coupon_minimum_order_not_met'),
                         ],
                     ]);
                 }
@@ -202,7 +202,7 @@ class CheckoutController extends Controller
                 if ($eligibleSubtotal <= 0) {
                     throw ValidationException::withMessages([
                         'coupon_code' => [
-                            'The coupon does not apply to any product in your cart.',
+                            __('api.coupon_no_matching_products'),
                         ],
                     ]);
                 }
@@ -243,7 +243,7 @@ class CheckoutController extends Controller
             if (! $shippingMethod) {
                 throw ValidationException::withMessages([
                     'shipping_method' => [
-                        'No default shipping method is available.',
+                        __('api.checkout_no_default_shipping_method'),
                     ],
                 ]);
             }

@@ -184,7 +184,7 @@ class CollectionController extends Controller
 
         throw ValidationException::withMessages([
             'translations' => [
-                'An English translation is required when a slug is not provided.',
+                __('api.collection_english_translation_required'),
             ],
         ]);
     }
@@ -210,7 +210,7 @@ class CollectionController extends Controller
 
         if ($slug !== Str::slug($slug)) {
             throw ValidationException::withMessages([
-                'slug' => ['Invalid slug format.'],
+                'slug' => [__('api.collection_invalid_slug')],
             ]);
         }
 
@@ -222,7 +222,7 @@ class CollectionController extends Controller
 
         if ($existing->exists()) {
             throw ValidationException::withMessages([
-                'slug' => ['Slug already exists.'],
+                'slug' => [__('api.collection_slug_already_exists')],
             ]);
         }
     }

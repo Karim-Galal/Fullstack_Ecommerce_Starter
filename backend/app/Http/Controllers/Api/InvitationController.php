@@ -53,7 +53,7 @@ class InvitationController extends Controller
 
         if (! $invitation || ! $invitation->valid()) {
             throw ValidationException::withMessages([
-                'invitation' => ['This invitation is invalid or has expired.'],
+                'invitation' => [__('api.invitation_invalid_or_expired')],
             ]);
         }
 
@@ -71,7 +71,7 @@ class InvitationController extends Controller
 
         if (! $invitation || ! $invitation->valid()) {
             throw ValidationException::withMessages([
-                'invitation' => ['This invitation is invalid or has expired.'],
+                'invitation' => [__('api.invitation_invalid_or_expired')],
             ]);
         }
 
@@ -85,13 +85,13 @@ class InvitationController extends Controller
 
         if ($email !== $invitation->invited_email) {
             throw ValidationException::withMessages([
-                'email' => ['The email address does not match the invitation.'],
+                'email' => [__('api.invitation_email_mismatch')],
             ]);
         }
 
         if (User::where('email', $email)->exists()) {
             throw ValidationException::withMessages([
-                'email' => ['This email address is already registered.'],
+                'email' => [__('api.invitation_email_already_registered')],
             ]);
         }
 
@@ -119,7 +119,7 @@ class InvitationController extends Controller
         });
 
         return response()->json([
-            'message' => 'Registration received. A Master Admin must approve access.',
+            'message' => __('api.invitation_registration_received'),
             'user_id' => $user->id,
         ], 201);
     }
@@ -133,7 +133,7 @@ class InvitationController extends Controller
         if ($invitation->status !== 'accepted') {
             throw ValidationException::withMessages([
                 'invitation' => [
-                    'Only accepted invitations can be approved.',
+                    __('api.invitation_must_be_accepted'),
                 ],
             ]);
         }
@@ -145,7 +145,7 @@ class InvitationController extends Controller
         if (! $user) {
             throw ValidationException::withMessages([
                 'invitation' => [
-                    'No inactive user is associated with this invitation.',
+                    __('api.invitation_inactive_user_not_found'),
                 ],
             ]);
         }
@@ -184,7 +184,7 @@ class InvitationController extends Controller
         if ($invitation->status !== 'accepted') {
             throw ValidationException::withMessages([
                 'invitation' => [
-                    'Only accepted invitations can be rejected.',
+                    __('api.invitation_must_be_accepted'),
                 ],
             ]);
         }
@@ -214,7 +214,7 @@ class InvitationController extends Controller
         if ($invitation->status !== 'pending') {
             throw ValidationException::withMessages([
                 'invitation' => [
-                    'Only pending invitations can be revoked.',
+                    __('api.invitation_must_be_pending'),
                 ],
             ]);
         }

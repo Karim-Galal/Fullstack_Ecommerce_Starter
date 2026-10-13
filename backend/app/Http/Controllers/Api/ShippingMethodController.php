@@ -86,7 +86,7 @@ class ShippingMethodController extends Controller
             && $data['is_active'] === false
         ) {
             throw ValidationException::withMessages([
-                'is_active' => ['The default shipping method cannot be deactivated.'],
+                'is_active' => [__('api.shipping_default_cannot_deactivate')],
             ]);
         }
 
@@ -101,7 +101,7 @@ class ShippingMethodController extends Controller
 
         if (! $shippingMethod->is_active) {
             throw ValidationException::withMessages([
-                'shipping_method' => ['An inactive shipping method cannot be set as default.'],
+                'shipping_method' => [__('api.shipping_inactive_cannot_be_default')],
             ]);
         }
 
@@ -125,13 +125,13 @@ class ShippingMethodController extends Controller
 
         if ($shippingMethod->is_default) {
             throw ValidationException::withMessages([
-                'shipping_method' => ['The default shipping method cannot be deleted.'],
+                'shipping_method' => [__('api.shipping_default_cannot_delete')],
             ]);
         }
 
         if (ShippingMethod::query()->count() <= 1) {
             throw ValidationException::withMessages([
-                'shipping_method' => ['At least one shipping method must remain.'],
+                'shipping_method' => [__('api.shipping_at_least_one_required')],
             ]);
         }
 

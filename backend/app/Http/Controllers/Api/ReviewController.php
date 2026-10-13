@@ -44,7 +44,7 @@ class ReviewController extends Controller
         if (! $hasPurchased) {
             throw ValidationException::withMessages([
                 'product_id' => [
-                    'You can only review products you have purchased.',
+                    __('api.review_purchase_required'),
                 ],
             ]);
         }
@@ -57,7 +57,7 @@ class ReviewController extends Controller
         if ($existingReview) {
             throw ValidationException::withMessages([
                 'product_id' => [
-                    'You have already reviewed this product.',
+                    __('api.review_already_exists'),
                 ],
             ]);
         }

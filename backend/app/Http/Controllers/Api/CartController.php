@@ -147,7 +147,7 @@ class CartController extends Controller
 
         if (! $cart) {
             return response()->json([
-                'message' => 'Cart not found.',
+                'message' => __('api.cart_not_found'),
             ], 404);
         }
 
@@ -155,7 +155,7 @@ class CartController extends Controller
 
         if (! $cartItem) {
             return response()->json([
-                'message' => 'Cart item not found.',
+                'message' => __('api.cart_item_not_found'),
             ], 404);
         }
 

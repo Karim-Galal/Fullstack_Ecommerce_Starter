@@ -26,4 +26,50 @@ return [
     'replacement_uploaded_queued' => 'تم رفع الصورة البديلة وإضافتها إلى قائمة المعالجة.',
     'product_image_updated' => 'تم تحديث صورة المنتج بنجاح.',
     'image_deleted_retention' => 'تم حذف الصورة. ستُحذف ملفاتها نهائيًا بعد انتهاء فترة الاحتفاظ.',
+
+    'invitation_invalid_or_expired' => 'الدعوة غير صالحة أو انتهت صلاحيتها.',
+    'invitation_email_mismatch' => 'البريد الإلكتروني لا يتطابق مع البريد المسجل في الدعوة.',
+    'invitation_email_already_registered' => 'هذا البريد الإلكتروني مسجل بالفعل.',
+    'invitation_must_be_accepted' => 'لا يمكن الموافقة على الدعوة أو رفضها إلا بعد قبولها.',
+    'invitation_inactive_user_not_found' => 'لا يوجد مستخدم غير نشط مرتبط بهذه الدعوة.',
+    'invitation_must_be_pending' => 'لا يمكن إلغاء الدعوة إلا إذا كانت معلقة.',
+
+    'category_cannot_be_own_parent' => 'لا يمكن أن يكون التصنيف أبًا لنفسه.',
+    'category_hierarchy_cycle' => 'لا يمكن أن تحتوي شجرة التصنيفات على دورة.',
+
+    'checkout_cart_empty' => 'سلة التسوق فارغة.',
+    'checkout_item_unavailable' => 'أحد المنتجات في سلة التسوق غير متاح.',
+    'coupon_conflicts_with_offer' => 'لا يمكن استخدام هذا الكوبون مع عرض نشط على أحد المنتجات.',
+    'coupon_invalid' => 'الكوبون غير صالح.',
+    'coupon_inactive' => 'هذا الكوبون غير نشط.',
+    'coupon_not_started' => 'لم يبدأ تفعيل هذا الكوبون بعد.',
+    'coupon_expired' => 'انتهت صلاحية هذا الكوبون.',
+    'coupon_usage_limit_reached' => 'تم الوصول إلى الحد الأقصى لاستخدام هذا الكوبون.',
+    'coupon_minimum_order_not_met' => 'لم يتم الوصول إلى الحد الأدنى للطلب المطلوب لاستخدام هذا الكوبون.',
+    'coupon_no_matching_products' => 'هذا الكوبون لا ينطبق على أي منتج في سلة التسوق.',
+    'checkout_no_default_shipping_method' => 'لا توجد طريقة شحن افتراضية متاحة.',
+
+    'collection_english_translation_required' => 'الترجمة الإنجليزية مطلوبة عند عدم تحديد رابط مختصر.',
+    'collection_invalid_slug' => 'تنسيق الرابط المختصر غير صالح.',
+    'collection_slug_already_exists' => 'هذا الرابط المختصر مستخدم بالفعل.',
+
+    'review_purchase_required' => 'يمكنك تقييم المنتجات التي اشتريتها فقط.',
+    'review_already_exists' => 'لقد قيّمت هذا المنتج بالفعل.',
+
+    'shipping_default_cannot_deactivate' => 'لا يمكن إلغاء تفعيل طريقة الشحن الافتراضية.',
+    'shipping_inactive_cannot_be_default' => 'لا يمكن تعيين طريقة شحن غير نشطة كطريقة افتراضية.',
+    'shipping_default_cannot_delete' => 'لا يمكن حذف طريقة الشحن الافتراضية.',
+    'shipping_at_least_one_required' => 'يجب أن تبقى طريقة شحن واحدة نشطة على الأقل.',
+
+    'verification_link_invalid' => 'رابط التحقق غير صالح.',
+
+    'wishlist_product_unavailable' => 'هذا المنتج غير متاح.',
+    'wishlist_already_exists' => 'هذا المنتج موجود بالفعل في قائمة رغباتك.',
+    'wishlist_item_not_found' => 'هذا المنتج غير موجود في قائمة رغباتك.',
+
+    'payment_must_be_pending' => 'لا يمكن بدء عملية الدفع إلا إذا كانت حالتها معلقة.',
+    'payment_expired' => 'انتهت صلاحية عملية الدفع هذه ولا يمكن البدء بها.',
+    'payment_must_be_paid_for_refund' => 'لا يمكن استرداد المبلغ إلا لعمليات الدفع المكتملة.',
+    'payment_amount_mismatch' => 'مبلغ الدفع لا يتطابق مع المبلغ المتوقع.',
+    'payment_invalid_state_transition' => 'انتقال حالة الدفع غير صالح.',
 ];

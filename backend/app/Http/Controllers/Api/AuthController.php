@@ -50,7 +50,6 @@ class AuthController extends Controller
             );
 
             return response()->json([
-                // 'message' => 'Registration successful. Please verify your email address.',
                 'message' => __('api.registration_successful'),
                 'user' => new UserResource($user),
                 'token' => $token,
@@ -68,7 +67,7 @@ class AuthController extends Controller
         );
 
         return response()->json([
-            'message' => 'Registration successful. Please verify your email address.',
+            'message' => __('api.registration_successful'),
             'user' => new UserResource($user),
         ], 201);
     }
@@ -179,7 +178,7 @@ class AuthController extends Controller
 
         if (! hash_equals((string) $request->hash, hash('sha256', $user->getEmailForVerification()))) {
             throw ValidationException::withMessages([
-                'email' => ['Invalid verification link.'],
+                'email' => [__('api.verification_link_invalid')],
             ]);
         }
 
@@ -195,7 +194,7 @@ class AuthController extends Controller
     public function resendVerificationEmail(Request $request)
     {
         if ($request->user()->hasVerifiedEmail()) {
-            return response()->json(['message' => 'Email already verified.']);
+            return response()->json(['message' => __('api.email_already_verified')]);
         }
 
         $request->user()->sendEmailVerificationNotification();
