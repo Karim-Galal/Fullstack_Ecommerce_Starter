@@ -43,7 +43,7 @@ class CartController extends Controller
 
         if (! $product) {
             return response()->json([
-                'message' => 'Product not found or is no longer available.',
+                'message' => __('api.product_not_found_or_unavailable'),
             ], 404);
         }
 
@@ -58,7 +58,7 @@ class CartController extends Controller
 
         if ($newQuantity > $product->stock) {
             return response()->json([
-                'message' => "Insufficient stock. Only {$product->stock} available.",
+                'message' =>__('api.insufficient_stock', ['stock' => $product->stock]),
             ], 422);
         }
 
@@ -96,7 +96,7 @@ class CartController extends Controller
 
         if (! $cart) {
             return response()->json([
-                'message' => 'Cart not found.',
+                'message' => __('api.cart_not_found'),
             ], 404);
         }
 
@@ -106,7 +106,7 @@ class CartController extends Controller
 
         if (! $cartItem) {
             return response()->json([
-                'message' => 'Cart item not found.',
+                'message' => __('api.cart_item_not_found'),
             ], 404);
         }
 
@@ -114,13 +114,13 @@ class CartController extends Controller
 
         if (! $product) {
             return response()->json([
-                'message' => 'Product not found.',
+                'message' => __('api.product_not_found'),
             ], 404);
         }
 
         if (! $product->is_active) {
             return response()->json([
-                'message' => 'Product is no longer available.',
+                'message' => __('api.product_unavailable'),
             ], 422);
         }
 

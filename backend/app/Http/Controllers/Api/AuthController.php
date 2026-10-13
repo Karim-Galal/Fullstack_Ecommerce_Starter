@@ -50,7 +50,8 @@ class AuthController extends Controller
             );
 
             return response()->json([
-                'message' => 'Registration successful. Please verify your email address.',
+                // 'message' => 'Registration successful. Please verify your email address.',
+                'message' => __('api.registration_successful'),
                 'user' => new UserResource($user),
                 'token' => $token,
             ], 201);
@@ -78,7 +79,7 @@ class AuthController extends Controller
 
         if (! Auth::attempt($credentials)) {
             throw ValidationException::withMessages([
-                'message' => ['The provided credentials are incorrect.'],
+                'message' => [__('api.invalid_credentials')],
             ]);
         }
 
@@ -108,7 +109,7 @@ class AuthController extends Controller
 
         if ($token) {
             return response()->json([
-                'message' => 'Login successful',
+                'message' => __('api.login_successful'),
                 'user' => new UserResource($user),
                 'token' => $token,
             ]);
@@ -137,7 +138,7 @@ class AuthController extends Controller
         }
 
         return response()->json([
-            'message' => 'Logged out successfully',
+            'message' => __('api.logout_successful'),
         ]);
     }
 
@@ -183,12 +184,12 @@ class AuthController extends Controller
         }
 
         if ($user->hasVerifiedEmail()) {
-            return response()->json(['message' => 'Email already verified.']);
+            return response()->json(['message' => __('api.email_already_verified')]);
         }
 
         $user->markEmailAsVerified();
 
-        return response()->json(['message' => 'Email verified successfully.']);
+        return response()->json(['message' => __('api.email_verified')]);
     }
 
     public function resendVerificationEmail(Request $request)
@@ -199,7 +200,7 @@ class AuthController extends Controller
 
         $request->user()->sendEmailVerificationNotification();
 
-        return response()->json(['message' => 'Verification link sent.']);
+        return response()->json(['message' => __('api.verification_link_sent')]);
     }
 
     public function createToken(TokenRequest $request)
@@ -208,7 +209,7 @@ class AuthController extends Controller
         $token = $user->createToken($request->device_name)->plainTextToken;
 
         return response()->json([
-            'message' => 'Token created successfully',
+            'message' => __('api.token_created'),
             'token' => $token,
         ]);
     }
@@ -219,12 +220,12 @@ class AuthController extends Controller
         $token = $user->tokens()->find($tokenId);
 
         if (! $token) {
-            return response()->json(['message' => 'Token not found.'], 404);
+            return response()->json(['message' => __('api.token_not_found')], 404);
         }
 
         $token->delete();
 
-        return response()->json(['message' => 'Token revoked successfully.']);
+        return response()->json(['message' => __('api.token_revoked')]);
     }
 
     public function tokens(Request $request)

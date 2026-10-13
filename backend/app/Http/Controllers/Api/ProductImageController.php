@@ -62,7 +62,7 @@ class ProductImageController extends Controller
         }
 
         return response()->json([
-            'message' => 'Images uploaded and queued for processing.',
+            'message' => __('api.images_uploaded_queued'),
             'data' => ProductImageResource::collection(
                 collect($createdImages)
             ),
@@ -78,13 +78,13 @@ class ProductImageController extends Controller
 
         if ($image->product_id !== $product->id) {
             return response()->json([
-                'message' => 'The image does not belong to this product.',
+                'message' => __('api.image_not_belongs_to_product'),
             ], 404);
         }
 
         if ($image->processing_status !== 'ready') {
             return response()->json([
-                'message' => 'Only a processed image can be replaced.',
+                'message' => __('api.only_processed_image_replaceable'),
             ], 422);
         }
 
@@ -120,7 +120,7 @@ class ProductImageController extends Controller
         );
 
         return response()->json([
-            'message' => 'Replacement uploaded and queued for processing.',
+            'message' => __('api.replacement_uploaded_queued'),
             'data' => new ProductImageResource($replacement),
         ], 202);
     }
@@ -156,7 +156,7 @@ class ProductImageController extends Controller
         });
 
         return response()->json([
-            'message' => 'Product image updated successfully.',
+            'message' => __('api.product_image_updated'),
             'data' => new ProductImageResource($image->fresh()),
         ]);
     }
@@ -203,7 +203,7 @@ class ProductImageController extends Controller
         });
 
         return response()->json([
-            'message' => 'Image deleted. Its files will be permanently removed after the retention period.',
+            'message' => __('api.image_deleted_retention'),
         ]);
     }
 }
