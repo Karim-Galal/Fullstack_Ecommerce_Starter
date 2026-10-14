@@ -1,0 +1,114 @@
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  /* Brand palette */
+  --color-brand-50: #041317;
+  --color-brand-100: #09252f;
+  --color-brand-200: #0d3846;
+  --color-brand-300: #114b5e;
+  --color-brand-400: #155e75;
+  --color-brand-500: #33879f;
+  --color-brand-600: #66a5b7;
+  --color-brand-700: #99c3cf;
+  --color-brand-800: #cce1e7;
+  --color-brand-900: #e8f3f6;
+
+  --color-brand: #33879f;
+  --color-brand-hover: #66a5b7;
+  --color-brand-light: #09252f;
+  --color-brand-on: #041317;
+
+  /* Neutral palette */
+  --color-neutral-0: #020617;
+  --color-neutral-50: #0f172a;
+  --color-neutral-100: #1e293b;
+  --color-neutral-200: #334155;
+  --color-neutral-300: #475569;
+  --color-neutral-400: #64748b;
+  --color-neutral-500: #94a3b8;
+  --color-neutral-600: #cbd5e1;
+  --color-neutral-700: #e2e8f0;
+  --color-neutral-800: #f1f5f9;
+  --color-neutral-900: #f8fafc;
+  --color-neutral-950: #ffffff;
+
+  /* Surfaces and text */
+  --color-surface: #0f172a;
+  --color-surface-hover: #1e293b;
+  --color-surface-elevated: #1e293b;
+  --color-surface-sunken: #020617;
+
+  --color-ink: #f1f5f9;
+  --color-ink-muted: #cbd5e1;
+  --color-ink-subtle: #94a3b8;
+  --color-ink-on-brand: #041317;
+
+  /* Borders */
+  --color-border: #334155;
+  --color-border-strong: #475569;
+  --color-border-focus: #66a5b7;
+
+  /* Status palettes */
+  --color-success-50: #064e3b;
+  --color-success-100: #065f46;
+  --color-success-500: #34d399;
+  --color-success-600: #10b981;
+  --color-success-700: #059669;
+  --color-success: #34d399;
+  --color-success-on: #064e3b;
+
+  --color-warning-50: #78350f;
+  --color-warning-100: #92400e;
+  --color-warning-500: #fbbf24;
+  --color-warning-600: #f59e0b;
+  --color-warning-700: #d97706;
+  --color-warning: #fbbf24;
+  --color-warning-on: #78350f;
+
+  --color-error-50: #7f1d1d;
+  --color-error-100: #991b1b;
+  --color-error-500: #f87171;
+  --color-error-600: #ef4444;
+  --color-error-700: #dc2626;
+  --color-error: #f87171;
+  --color-error-on: #450a0a;
+
+  --color-info-50: #1e3a5f;
+  --color-info-100: #1e40af;
+  --color-info-500: #60a5fa;
+  --color-info-600: #3b82f6;
+  --color-info-700: #2563eb;
+  --color-info: #60a5fa;
+  --color-info-on: #172554;
+
+  /* Semantic aliases */
+  --primary: var(--color-brand);
+  --primary-hover: var(--color-brand-hover);
+  --primary-light: var(--color-brand-light);
+  --primary-on: var(--color-brand-on);
+
+  --surface: var(--color-surface);
+  --surface-hover: var(--color-surface-hover);
+  --surface-elevated: var(--color-surface-elevated);
+  --surface-sunken: var(--color-surface-sunken);
+
+  --text-primary: var(--color-ink);
+  --text-secondary: var(--color-ink-muted);
+  --text-tertiary: var(--color-ink-subtle);
+  --text-on-primary: var(--color-ink-on-brand);
+
+  --border: var(--color-border);
+  --border-strong: var(--color-border-strong);
+  --border-focus: var(--color-border-focus);
+
+  --success: var(--color-success);
+  --success-on: var(--color-success-on);
+  --warning: var(--color-warning);
+  --warning-on: var(--color-warning-on);
+  --error: var(--color-error);
+  --error-on: var(--color-error-on);
+  --info: var(--color-info);
+  --info-on: var(--color-info-on);
+
+  --focus-ring-color: var(--color-brand-400);
+}

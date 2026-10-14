@@ -1,1 +1,11 @@
-@import "tailwindcss";@import "./foundation.css";@import "./base.css";@import "./components.css";@import "./utilities.css";@import "./animations.css";
+@import "tailwindcss";
+
+@import "./themes/default.css";
+@import "./themes/dark.css";
+@import "./theme.css";
+
+@import "./foundation.css";
+@import "./base.css";
+@import "./components.css";
+@import "./utilities.css";
+@import "./animations.css";
