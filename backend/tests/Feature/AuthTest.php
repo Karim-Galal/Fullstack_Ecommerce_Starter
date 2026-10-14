@@ -137,7 +137,7 @@ class AuthTest extends TestCase
         ])->postJson('/api/v1/auth/logout');
 
         $response->assertStatus(200)
-            ->assertJson(['message' => 'Logged out successfully']);
+            ->assertJson(['message' => 'Logged out successfully.']);
 
         $this->assertDatabaseMissing('personal_access_tokens', [
             'tokenable_id' => $user->id,

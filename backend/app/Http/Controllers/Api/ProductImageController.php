@@ -169,7 +169,7 @@ class ProductImageController extends Controller
 
         if ($image->product_id !== $product->id) {
             return response()->json([
-                'message' => 'The image does not belong to this product.',
+                'message' => __('api.image_not_belongs_to_product'),
             ], 404);
         }
 

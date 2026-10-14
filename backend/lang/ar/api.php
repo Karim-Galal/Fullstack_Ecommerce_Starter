@@ -72,4 +72,10 @@ return [
     'payment_must_be_paid_for_refund' => 'لا يمكن استرداد المبلغ إلا لعمليات الدفع المكتملة.',
     'payment_amount_mismatch' => 'مبلغ الدفع لا يتطابق مع المبلغ المتوقع.',
     'payment_invalid_state_transition' => 'انتقال حالة الدفع غير صالح.',
+    'unsupported_payment_gateway' => 'بوابة الدفع غير مدعومة.',
+    'paymob_webhook_invalid' => 'رابط webhook لـ Paymob غير صالح.',
+    'paymob_webhook_not_configured' => 'رابط webhook لـ Paymob غير مكون.',
+    'paymob_webhook_signature_invalid' => 'توقيع رابط webhook لـ Paymob غير صالح.',
+    'stripe_webhook_invalid' => 'إشعار Stripe غير صالح.',
+
 ];

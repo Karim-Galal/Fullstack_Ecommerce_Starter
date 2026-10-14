@@ -18,7 +18,7 @@ class PaymobWebhookHandler
         $paymobOrderId = data_get($object, 'order.id');
 
         if (! $transactionId || ! $paymobOrderId) {
-            abort(422, 'Invalid Paymob webhook.');
+            abort(422, __('api.paymob_webhook_invalid'));
         }
 
         $payment = Payment::where('gateway', 'paymob')
@@ -46,7 +46,7 @@ class PaymobWebhookHandler
     private function assertAmount(mixed $amount, Payment $payment): void
     {
         if ((int) $amount !== (int) round((float) $payment->amount * 100)) {
-            abort(422, 'Payment amount mismatch.');
+            abort(422, __('api.payment_amount_mismatch'));
         }
     }
 
@@ -55,7 +55,7 @@ class PaymobWebhookHandler
         $secret = config('services.paymob.hmac_secret');
 
         if (! $secret || ! $provided) {
-            abort(503, 'Paymob webhook is not configured.');
+            abort(503, __('api.paymob_webhook_not_configured'));
         }
 
         $object = $data['obj'] ?? [];
@@ -92,7 +92,7 @@ class PaymobWebhookHandler
         $calculated = hash_hmac('sha512', implode('', $values), $secret);
 
         if (! hash_equals($calculated, $provided)) {
-            abort(403, 'Invalid Paymob webhook signature.');
+            abort(403, __('api.paymob_webhook_signature_invalid'));
         }
     }
 }

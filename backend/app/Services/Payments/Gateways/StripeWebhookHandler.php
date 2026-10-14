@@ -19,7 +19,7 @@ class StripeWebhookHandler
         try {
             $event = Webhook::constructEvent($payload, $signature, $secret);
         } catch (UnexpectedValueException|SignatureVerificationException $e) {
-            abort(400, 'Invalid Stripe webhook.');
+            abort(400, __('api.stripe_webhook_invalid'));
         }
 
         $object = $event->data->object;
@@ -80,7 +80,7 @@ class StripeWebhookHandler
     private function assertAmount(int $minorAmount, Payment $payment): void
     {
         if ((int) $minorAmount !== (int) round((float) $payment->amount * 100)) {
-            abort(422, 'Payment amount mismatch.');
+            abort(422, __('api.payment_amount_mismatch'));
         }
     }
 }

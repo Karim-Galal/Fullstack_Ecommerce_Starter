@@ -115,7 +115,7 @@ class AuthController extends Controller
         }
 
         return response()->json([
-            'message' => 'Login successful',
+            'message' => __('api.login_successful'),
             'user' => new UserResource($user),
         ]);
     }

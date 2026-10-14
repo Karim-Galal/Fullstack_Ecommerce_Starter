@@ -128,7 +128,7 @@ class CartController extends Controller
 
         if ($quantity > $product->stock) {
             return response()->json([
-                'message' => "Insufficient stock. Only {$product->stock} available.",
+                'message' => __('api.insufficient_stock', ['stock' => $product->stock]),
             ], 422);
         }
 

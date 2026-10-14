@@ -70,4 +70,10 @@ return [
     'payment_must_be_paid_for_refund' => 'Only paid payments can be refunded.',
     'payment_amount_mismatch' => 'The payment amount does not match the expected amount.',
     'payment_invalid_state_transition' => 'Invalid payment state transition.',
+    'unsupported_payment_gateway' => 'Unsupported payment gateway.',
+    'paymob_webhook_invalid' => 'Invalid Paymob webhook.',
+    'paymob_webhook_not_configured' => 'Paymob webhook is not configured.',
+    'paymob_webhook_signature_invalid' => 'Invalid Paymob webhook signature.',
+    'stripe_webhook_invalid' => 'Invalid Stripe webhook.',
+
 ];

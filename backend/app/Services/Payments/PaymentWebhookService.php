@@ -21,7 +21,7 @@ class PaymentWebhookService
         $event = match ($gateway) {
             'stripe' => $this->stripe->handle($request),
             'paymob' => $this->paymob->handle($request),
-            default => abort(404, 'Unsupported payment gateway.'),
+            default => abort(404, __('api.unsupported_payment_gateway')),
         };
 
         if (! $event['payment']) {
