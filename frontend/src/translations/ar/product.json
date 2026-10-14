@@ -1,0 +1,20 @@
+{
+  "addToCart": "أضف للسلة",
+  "addToWishlist": "أضف للمفضلة",
+  "removeFromWishlist": "أزل من المفضلة",
+  "inStock": "متوفر",
+  "outOfStock": "غير متوفر",
+  "lowStock": "متبقي {{count}} فقط",
+  "price": "السعر",
+  "salePrice": "سعر العرض",
+  "description": "الوصف",
+  "specifications": "المواصفات",
+  "reviews": "التقييمات",
+  "relatedProducts": "منتجات ذات صلة",
+  "sku": "رمز المنتج",
+  "quantity": "الكمية",
+  "selectOptions": "اختر الخيارات",
+  "buyNow": "اشترِ الآن",
+  "notifyMe": "أعلمني عند التوفر",
+  "share": "مشاركة"
+}

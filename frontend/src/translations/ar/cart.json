@@ -1,0 +1,18 @@
+{
+  "title": "سلة التسوق",
+  "empty": "سلتك فارغة",
+  "emptyMessage": "يبدو أنك لم تضف أي منتجات بعد.",
+  "continueShopping": "مواصلة التسوق",
+  "proceedToCheckout": "الانتقال للدفع",
+  "subtotal": "المجموع الفرعي",
+  "shipping": "الشحن",
+  "discount": "الخصم",
+  "total": "الإجمالي",
+  "updateCart": "تحديث السلة",
+  "removeItem": "إزالة",
+  "quantity": "الكمية",
+  "couponCode": "كود الخصم",
+  "applyCoupon": "تطبيق",
+  "couponApplied": "تم تطبيق الكود بنجاح",
+  "invalidCoupon": "كود خصم غير صالح أو منتهي الصلاحية"
+}

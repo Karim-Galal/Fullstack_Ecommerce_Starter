@@ -1,0 +1,11 @@
+{
+  "title": "إتمام الطلب",
+  "shippingAddress": "عنوان الشحن",
+  "billingAddress": "عنوان الفوترة",
+  "paymentMethod": "طريقة الدفع",
+  "orderSummary": "ملخص الطلب",
+  "placeOrder": "تأكيد الطلب",
+  "processing": "جاري المعالجة...",
+  "success": "تم تقديم طلبك بنجاح!",
+  "failed": "فشل الطلب. يرجى المحاولة مرة أخرى."
+}

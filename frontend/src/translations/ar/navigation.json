@@ -1,0 +1,22 @@
+{
+  "home": "الرئيسية",
+  "shop": "المتجر",
+  "products": "المنتجات",
+  "categories": "الفئات",
+  "collections": "المجموعات",
+  "cart": "السلة",
+  "checkout": "إتمام الطلب",
+  "account": "الحساب",
+  "login": "تسجيل الدخول",
+  "register": "إنشاء حساب",
+  "logout": "تسجيل الخروج",
+  "admin": "الإدارة",
+  "dashboard": "لوحة التحكم",
+  "orders": "الطلبات",
+  "customers": "العملاء",
+  "settings": "الإعدادات",
+  "profile": "الملف الشخصي",
+  "wishlist": "المفضلة",
+  "addresses": "العناوين",
+  "reviews": "التقييمات"
+}

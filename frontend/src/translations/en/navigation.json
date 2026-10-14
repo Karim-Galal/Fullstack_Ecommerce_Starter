@@ -1,0 +1,22 @@
+{
+  "home": "Home",
+  "shop": "Shop",
+  "products": "Products",
+  "categories": "Categories",
+  "collections": "Collections",
+  "cart": "Cart",
+  "checkout": "Checkout",
+  "account": "Account",
+  "login": "Login",
+  "register": "Register",
+  "logout": "Logout",
+  "admin": "Admin",
+  "dashboard": "Dashboard",
+  "orders": "Orders",
+  "customers": "Customers",
+  "settings": "Settings",
+  "profile": "Profile",
+  "wishlist": "Wishlist",
+  "addresses": "Addresses",
+  "reviews": "Reviews"
+}

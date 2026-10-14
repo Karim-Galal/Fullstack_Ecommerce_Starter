@@ -1,0 +1,18 @@
+{
+  "title": "Shopping Cart",
+  "empty": "Your cart is empty",
+  "emptyMessage": "Looks like you haven't added any products yet.",
+  "continueShopping": "Continue Shopping",
+  "proceedToCheckout": "Proceed to Checkout",
+  "subtotal": "Subtotal",
+  "shipping": "Shipping",
+  "discount": "Discount",
+  "total": "Total",
+  "updateCart": "Update Cart",
+  "removeItem": "Remove",
+  "quantity": "Quantity",
+  "couponCode": "Coupon Code",
+  "applyCoupon": "Apply",
+  "couponApplied": "Coupon applied successfully",
+  "invalidCoupon": "Invalid or expired coupon code"
+}

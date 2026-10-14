@@ -1,0 +1,20 @@
+{
+  "addToCart": "Add to Cart",
+  "addToWishlist": "Add to Wishlist",
+  "removeFromWishlist": "Remove from Wishlist",
+  "inStock": "In Stock",
+  "outOfStock": "Out of Stock",
+  "lowStock": "Only {{count}} left",
+  "price": "Price",
+  "salePrice": "Sale Price",
+  "description": "Description",
+  "specifications": "Specifications",
+  "reviews": "Reviews",
+  "relatedProducts": "Related Products",
+  "sku": "SKU",
+  "quantity": "Quantity",
+  "selectOptions": "Select Options",
+  "buyNow": "Buy Now",
+  "notifyMe": "Notify Me",
+  "share": "Share"
+}
