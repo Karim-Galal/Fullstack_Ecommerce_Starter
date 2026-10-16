@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\CollectionController;
 use App\Http\Controllers\Api\CouponController;
 use App\Http\Controllers\Api\GoogleAuthController;
 use App\Http\Controllers\Api\InvitationController;
+use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\PaymentWebhookController;
@@ -143,6 +144,17 @@ Route::prefix('v1')->group(function () {
         Route::post('auth/tokens', [AuthController::class, 'createToken']);
         Route::get('auth/tokens', [AuthController::class, 'tokens']);
         Route::delete('auth/tokens/{token}', [AuthController::class, 'revokeToken']);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Notification Routes
+        |--------------------------------------------------------------------------
+        */
+
+        Route::get('notifications', [NotificationController::class, 'index']);
+        Route::get('notifications/unread-count', [NotificationController::class, 'unreadCount']);
+        Route::patch('notifications/read-all', [NotificationController::class, 'markAllAsRead']);
+        Route::patch('notifications/{notification}/read', [NotificationController::class, 'markAsRead']);
 
         /*
         |--------------------------------------------------------------------------

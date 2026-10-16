@@ -78,4 +78,8 @@ return [
     'paymob_webhook_signature_invalid' => 'توقيع رابط webhook لـ Paymob غير صالح.',
     'stripe_webhook_invalid' => 'إشعار Stripe غير صالح.',
 
+    'notifications_marked_read' => 'تم تعليم جميع الإشعارات كمقروءة.',
+    'notification_order_placed' => 'تم تقديم طلبك :number.',
+    'notification_payment_confirmed' => 'تم تأكيد الدفع للطلب :number.',
+
 ];

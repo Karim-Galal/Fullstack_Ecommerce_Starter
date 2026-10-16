@@ -4,6 +4,7 @@ namespace App\Services\Payments;
 
 use App\Jobs\SendOrderConfirmation;
 use App\Models\Payment;
+use App\Notifications\PaymentConfirmedNotification;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -42,6 +43,12 @@ class PaymentStateService
                 $payment->order->update(['status' => 'confirmed']);
 
                 SendOrderConfirmation::dispatch($payment->order_id)->afterCommit();
+
+                if ($payment->order->user) {
+                    $payment->order->user->notify(
+                        new PaymentConfirmedNotification($payment->order)
+                    );
+                }
             }
 
             if ($status === 'expired') {

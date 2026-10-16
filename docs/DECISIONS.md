@@ -113,7 +113,7 @@ The application needs a notification foundation for:
 - No package installed yet - schema is protocol-standard
 
 ### Status
-Accepted and implemented. Foundation ready; delivery channels to be implemented later.
+Accepted and implemented. The database (in-app) channel is implemented via authenticated API endpoints and order/payment business events; broadcast and browser push channels remain future work.
 
 ---
 

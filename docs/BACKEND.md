@@ -31,6 +31,7 @@ backend/
 │   │   │       ├── CouponController.php
 │   │   │       ├── GoogleAuthController.php
 │   │   │       ├── InvitationController.php
+│   │   │       ├── NotificationController.php
 │   │   │       ├── OfferController.php
 │   │   │       ├── OrderController.php
 │   │   │       ├── PaymentController.php
@@ -79,6 +80,8 @@ backend/
 │   │   ├── User.php
 │   │   └── Wishlist.php (pivot model not used)
 │   ├── Notifications/
+│   │   ├── OrderPlacedNotification.php
+│   │   ├── PaymentConfirmedNotification.php
 │   │   └── ResetPasswordNotification.php
 │   ├── Policies/          # Authorization policies
 │   │   ├── AddressPolicy.php
@@ -86,6 +89,7 @@ backend/
 │   │   ├── CollectionPolicy.php
 │   │   ├── CouponPolicy.php
 │   │   ├── InvitationPolicy.php
+│   │   ├── NotificationPolicy.php
 │   │   ├── OfferPolicy.php
 │   │   ├── PaymentPolicy.php
 │   │   ├── ProductPolicy.php
@@ -105,6 +109,7 @@ backend/
 │   │   ├── CollectionTranslationResource.php
 │   │   ├── CouponResource.php
 │   │   ├── InvoiceResource.php
+│   │   ├── NotificationResource.php
 │   │   ├── OfferResource.php
 │   │   ├── OrderItemResource.php
 │   │   ├── OrderResource.php
@@ -173,6 +178,7 @@ backend/
 │   │   ├── ExampleTest.php
 │   │   ├── GoogleAuthTest.php
 │   │   ├── InvitationTest.php
+│   │   ├── NotificationTest.php
 │   │   ├── OfferTest.php
 │   │   ├── OrderTest.php
 │   │   ├── PaymentTest.php
@@ -215,6 +221,7 @@ All API controllers in `app/Http/Controllers/Api/`:
 | OrderController | Admin order listing/show |
 | ProductImageController | Admin image upload, replace, update, delete with processing |
 | OfferController | Admin offer CRUD |
+| NotificationController | Authenticated user in-app notifications: list, unread count, mark one/all as read |
 
 ### Models
 All models in `app/Models/`:
@@ -256,9 +263,10 @@ All models in `app/Models/`:
 - **ShippingMethodPolicy**: viewAny, create, update, delete, setDefault → admin only
 - **WishlistPolicy**: view, create, delete → ownership
 - **InvitationPolicy**: viewAny, create, approve, reject, revoke → admin
+- **NotificationPolicy**: view, update → ownership; registered for `Illuminate\Notifications\DatabaseNotification` (no custom model, per ADR-003)
 
 ### Services
-- **PaymentStateService**: Enforces payment state transitions, validates amounts, triggers order confirmation, restores stock on expiry
+- **PaymentStateService**: Enforces payment state transitions, validates amounts, triggers order confirmation, creates the payment-confirmed in-app notification, restores stock on expiry
 - **PaymentInitiationService**: Creates payment intent (Stripe) or intention (Paymob), returns client_secret
 - **PaymentRefundService**: Processes refunds via gateway
 - **PaymentGatewayManager**: Resolves gateway by name (stripe/paymob)
@@ -270,6 +278,8 @@ All models in `app/Models/`:
 
 ### Notifications
 - **ResetPasswordNotification**: Custom password reset email with frontend URL
+- **OrderPlacedNotification**: Database notification sent to the order owner after checkout succeeds (payload type `order_placed`)
+- **PaymentConfirmedNotification**: Database notification sent to the order owner when a payment transitions to `paid` (payload type `payment_confirmed`)
 
 ### Middleware
 - **EnsureFrontendRequestsAreStateful**: Custom Sanctum middleware that only starts session for SPA requests (not Bearer token requests)
@@ -323,7 +333,7 @@ return [
 ## Routing
 All API routes in `routes/api.php`:
 - Public: products, categories, collections, cart, auth/register, auth/login, auth/forgot-password, auth/reset-password, google/redirect, google/callback, invitations/{token}, invitations/{token}/accept, shipping-methods, reviews
-- Authenticated (auth:sanctum): auth/me, auth/logout, auth/tokens, auth/email/verify, auth/email/verification-notification, checkout, payments/{payment}/initiate, reviews/mine, reviews CRUD, wishlist CRUD, addresses CRUD, admin/*
+- Authenticated (auth:sanctum): auth/me, auth/logout, auth/tokens, auth/email/verify, auth/email/verification-notification, checkout, payments/{payment}/initiate, reviews/mine, reviews CRUD, wishlist CRUD, addresses CRUD, notifications, notifications/unread-count, notifications/{notification}/read, notifications/read-all, admin/*
 - Webhooks: payments/{gateway}/webhook (no auth, signature verified)
 - Rate limited: auth (5/min), invitations (10/min), webhooks (60/min)
 
@@ -339,8 +349,8 @@ All API routes in `routes/api.php`:
 ## Testing
 * PHPUnit in `tests/`
 * Run tests with `php artisan test`.
-* Feature tests cover authentication, authorization, policies, catalog, invitations, coupons, offers, cart, checkout, payments, product images, reviews, wishlists, addresses, and shipping methods.
-* **Full test suite:** 118 tests passed, 474 assertions.
+* Feature tests cover authentication, authorization, policies, catalog, invitations, coupons, offers, cart, checkout, payments, product images, reviews, wishlists, addresses, shipping methods, and in-app notifications.
+* **Full test suite:** 131 tests passed, 518 assertions.
 
 
 ## Queue/Jobs

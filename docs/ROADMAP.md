@@ -106,7 +106,7 @@
 - [ ] Address selection at checkout (frontend)
 
 ## Phase 8: Notifications & Push
-- [ ] Database notifications (in-app)
+- [x] Database notifications (in-app) - API endpoints for listing, unread count, mark read/read-all; generated on order placed and payment confirmed
 - [ ] Realtime notifications (Laravel Reverb + Echo)
 - [ ] Browser push notifications (Web Push)
 - [ ] Email notification templates (order confirmation, shipping updates, etc.)

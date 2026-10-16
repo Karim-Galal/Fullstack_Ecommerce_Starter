@@ -25,8 +25,8 @@ A single-store ecommerce application with Laravel 12 API backend and Next.js 16 
 ## Implementation State (Post-Refactor)
 - **Database**: Single-store schema (no store_id columns)
 - **Models**: User, Product, Category, Collection, Cart, Order, Payment, Invitation, Invoice, Offer, Coupon, Review, PushSubscription, ProductImage, ProductImageCleanup, Address, ShippingMethod, etc.
-- **Controllers**: Auth, Product, Category, Collection, Cart, Checkout, PaymentWebhook, Payment, Invitation, GoogleAuth, Coupon, Review, Wishlist, Address, ShippingMethod, User, Order, ProductImage, Offer
-- **Policies**: ProductPolicy, CategoryPolicy, CollectionPolicy, CouponPolicy, UserPolicy, OfferPolicy, ReviewPolicy, InvitationPolicy, AddressPolicy, PaymentPolicy, ShippingMethodPolicy, WishlistPolicy
+- **Controllers**: Auth, Product, Category, Collection, Cart, Checkout, PaymentWebhook, Payment, Invitation, GoogleAuth, Coupon, Review, Wishlist, Address, ShippingMethod, User, Order, ProductImage, Offer, Notification
+- **Policies**: ProductPolicy, CategoryPolicy, CollectionPolicy, CouponPolicy, UserPolicy, OfferPolicy, ReviewPolicy, InvitationPolicy, AddressPolicy, PaymentPolicy, ShippingMethodPolicy, WishlistPolicy, NotificationPolicy
 - **Services**: PaymentStateService (payment state machine), PaymentInitiationService, PaymentRefundService, PaymentGatewayManager, CartMergeService, PaymentWebhookService
 - **Auth**: Complete - AuthController implemented with register, login, logout, me, password reset, email verification, mobile tokens, Google OAuth
 - **Coupons**: Admin CRUD complete. Coupon application at checkout is implemented (validated against product eligibility, usage limits, dates, minimum order). Coupons cannot be combined with active product offers.
@@ -48,6 +48,21 @@ A single-store ecommerce application with Laravel 12 API backend and Next.js 16 
 - **System-controlled**: `created_by` is set from the authenticated admin, `used_count` starts at 0 - neither is accepted from the client
 - **Response**: `CouponResource` (id, code, discount_type, discount_amount, minimum_order, usage_limit, used_count, starts_at, expires_at, is_active, created_by, products, created_at, updated_at)
 - **Checkout**: Coupons are validated and applied at checkout if no active product offer exists on any cart item. Coupon discount applies to eligible products only.
+
+## In-App Notifications (Implemented)
+- **Endpoints** (all `auth:sanctum`, scoped to the authenticated user):
+  - `GET /api/v1/notifications` - paginated (20/page) list of the user's notifications, newest first
+  - `GET /api/v1/notifications/unread-count` - `{ "unread_count": n }`
+  - `PATCH /api/v1/notifications/{notification}/read` - mark one notification as read
+  - `PATCH /api/v1/notifications/read-all` - mark all of the user's notifications as read
+- **Storage**: Laravel database notifications on the existing `notifications` table (UUID id, `type`, `notifiable` morph, `data`, `read_at`). `User` already uses the `Notifiable` trait.
+- **Authorization**: `NotificationPolicy` is registered for `Illuminate\Notifications\DatabaseNotification` in `AppServiceProvider` and verifies `notifiable_type`/`notifiable_id` match the authenticated user; another user's notification returns 403. No custom Notification model is used (see ADR-003).
+- **Resource**: `NotificationResource` returns `id`, `type` (class basename), `payload` (decoded notification data), `read_at`, `created_at`, `updated_at`. The payload key is `payload` rather than `data` to avoid colliding with the standard API `data` wrapper.
+- **Integrated events**:
+  - **Order placed**: `OrderPlacedNotification` is sent to the order owner after `CheckoutController` successfully creates the order and initiates the gateway.
+  - **Payment confirmed**: `PaymentConfirmedNotification` is sent to the order owner inside `PaymentStateService::apply()` when a payment transitions to `paid` (same transaction as the order status change). Repeated transitions and retried webhooks do not create duplicates.
+- **Limitations**: In-app only (no email, browser push, or broadcasting yet). Messages are localized at creation time using the current request locale. `markAllAsRead` marks unread notifications one row at a time.
+- **Tests**: `tests/Feature/NotificationTest.php` covers listing, pagination, unread count, read/read-all, cross-user access denial, checkout generation, payment generation, duplicate prevention, and failure behavior.
 
 ## Development Commands
 ```bash
@@ -151,8 +166,8 @@ Before adding any package:
 - Never claim that the full test suite passes based only on filtered test results.
 
 Latest reported result:
-- `php artisan test --filter=Coupon`: 53 tests passed, 197 assertions.
-- This is a filtered result, not confirmation that the entire test suite passes.
+- Full suite: `php artisan test` - 131 tests passed, 518 assertions (after in-app notifications).
+- Previously: 118 passed, 474 assertions after API localization.
 - Re-run tests before relying on this result as the current repository status.
 
 ## Current Known Problems and Verification Items

@@ -12,6 +12,7 @@ use App\Models\Order;
 use App\Models\Payment;
 use App\Models\Product;
 use App\Models\ShippingMethod;
+use App\Notifications\OrderPlacedNotification;
 use App\Services\Payments\PaymentInitiationService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -297,6 +298,8 @@ class CheckoutController extends Controller
         });
 
         $gateway = $paymentService->initiate($payment);
+
+        $user->notify(new OrderPlacedNotification($order));
 
         return response()->json([
             'order' => new OrderResource($order),

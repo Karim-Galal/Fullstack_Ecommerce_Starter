@@ -76,4 +76,8 @@ return [
     'paymob_webhook_signature_invalid' => 'Invalid Paymob webhook signature.',
     'stripe_webhook_invalid' => 'Invalid Stripe webhook.',
 
+    'notifications_marked_read' => 'All notifications marked as read.',
+    'notification_order_placed' => 'Your order :number has been placed.',
+    'notification_payment_confirmed' => 'Payment for order :number has been confirmed.',
+
 ];
