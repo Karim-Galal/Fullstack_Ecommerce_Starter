@@ -10,7 +10,7 @@ export default function Home() {
   const locale = useLocale();
 
   return (
-    <main className="shell py-20">
+    <main className="shell py-20 container">
       <header className="mb-12 flex items-center justify-between">
         <div>
           <p className="eyebrow">{t('appName')}</p>
