@@ -9,8 +9,12 @@ use App\Models\Payment;
 use App\Models\Product;
 use App\Models\ShippingMethod;
 use App\Models\User;
+use App\Models\OrderItem;
+use App\Notifications\NewOrderAdminNotification;
 use App\Notifications\OrderPlacedNotification;
+use App\Notifications\PaymentFailedNotification;
 use App\Notifications\PaymentConfirmedNotification;
+use App\Notifications\PaymentExpiredNotification;
 use App\Services\Payments\PaymentInitiationService;
 use App\Services\Payments\PaymentStateService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -172,6 +176,19 @@ class NotificationTest extends TestCase
     {
         $user = $this->customer();
 
+
+        $staff = User::factory()->create([
+            'role' => 'staff',
+            'status' => 'active',
+            'permissions' => [],
+        ]);
+
+        $inactiveStaff = User::factory()->create([
+            'role' => 'staff',
+            'status' => 'inactive',
+            'permissions' => [],
+        ]);
+
         $product = Product::factory()->create([
             'price' => 100,
             'stock' => 10,
@@ -228,6 +245,19 @@ class NotificationTest extends TestCase
             'notifiable_id' => $user->id,
             'type' => OrderPlacedNotification::class,
         ]);
+
+        $this->assertDatabaseHas('notifications', [
+            'notifiable_type' => User::class,
+            'notifiable_id' => $staff->id,
+            'type' => NewOrderAdminNotification::class,
+        ]);
+
+        $this->assertDatabaseMissing('notifications', [
+            'notifiable_type' => User::class,
+            'notifiable_id' => $inactiveStaff->id,
+            'type' => NewOrderAdminNotification::class,
+        ]);
+
     }
 
     public function test_failed_checkout_does_not_create_notification(): void
@@ -285,6 +315,39 @@ class NotificationTest extends TestCase
         $this->assertEquals('confirmed', $order->fresh()->status);
     }
 
+    public function test_failed_payment_creates_only_one_notification(): void
+    {
+        $user = $this->customer();
+
+        $order = Order::factory()->create([
+            'user_id' => $user->id,
+            'status' => 'pending',
+        ]);
+
+        $payment = Payment::factory()->create([
+            'order_id' => $order->id,
+            'amount' => $order->total,
+            'status' => 'pending',
+        ]);
+
+        $service = app(PaymentStateService::class);
+
+        $service->apply($payment, 'failed', 'gateway-ref', []);
+        $service->apply($payment->fresh(), 'failed', 'gateway-ref', []);
+
+        $this->assertDatabaseHas('notifications', [
+            'notifiable_type' => User::class,
+            'notifiable_id' => $user->id,
+            'type' => PaymentFailedNotification::class,
+        ]);
+
+        $this->assertSame(
+            1,
+            $user->notifications()
+                ->where('type', PaymentFailedNotification::class)
+                ->count()
+        );
+    }
     public function test_repeated_paid_transition_does_not_duplicate_notification(): void
     {
         $user = $this->customer();
@@ -334,5 +397,72 @@ class NotificationTest extends TestCase
         }
 
         $this->assertEquals(0, $user->notifications()->count());
+    }
+
+    public function test_expired_payment_notification_uses_its_own_translation_key(): void
+    {
+        $order = Order::factory()->create([
+            'number' => 'ORD-EXPIRED-001',
+        ]);
+
+        $notification = new PaymentExpiredNotification($order);
+
+        $data = $notification->toArray(User::factory()->make());
+
+        $this->assertSame('payment_expired', $data['type']);
+        $this->assertStringContainsString(
+            'ORD-EXPIRED-001',
+            $data['message']
+        );
+    }
+
+    public function test_expired_payment_creates_one_notification_and_restores_stock_once(): void
+    {
+        $user = $this->customer();
+
+        $product = Product::factory()->create([
+            'stock' => 10,
+        ]);
+
+        $order = Order::factory()->create([
+            'user_id' => $user->id,
+            'status' => 'pending',
+        ]);
+
+        OrderItem::factory()->create([
+            'order_id' => $order->id,
+            'product_id' => $product->id,
+            'quantity' => 2,
+        ]);
+
+        $payment = Payment::factory()->create([
+            'order_id' => $order->id,
+            'amount' => $order->total,
+            'status' => 'pending',
+        ]);
+
+        $service = app(PaymentStateService::class);
+
+        $service->apply($payment, 'expired', 'gateway-ref', []);
+
+        $this->assertSame(12, (int) $product->fresh()->stock);
+
+        $this->assertSame(
+            1,
+            $user->notifications()
+                ->where('type', PaymentExpiredNotification::class)
+                ->count()
+        );
+
+        $service->apply($payment->fresh(), 'expired', 'gateway-ref', []);
+
+        $this->assertSame(12, (int) $product->fresh()->stock);
+
+        $this->assertSame(
+            1,
+            $user->notifications()
+                ->where('type', PaymentExpiredNotification::class)
+                ->count()
+        );
     }
 }

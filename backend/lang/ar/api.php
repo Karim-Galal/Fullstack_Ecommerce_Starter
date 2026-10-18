@@ -81,5 +81,8 @@ return [
     'notifications_marked_read' => 'تم تعليم جميع الإشعارات كمقروءة.',
     'notification_order_placed' => 'تم تقديم طلبك :number.',
     'notification_payment_confirmed' => 'تم تأكيد الدفع للطلب :number.',
-
+    'admin_new_order' => 'تم استلام طلب جديد: :number',
+    'payment_failed' => 'فشل الدفع للطلب :number. يرجى المحاولة مرة أخرى.',
+    'payment_expired_notification' => 'انتهت مهلة الدفع للطلب :number. يُرجى مراجعة طلبك لمعرفة الخطوات التالية المتاحة.',
+    'order_status_updated' => 'تم تحديث حالة الطلب :number إلى :status.',
 ];

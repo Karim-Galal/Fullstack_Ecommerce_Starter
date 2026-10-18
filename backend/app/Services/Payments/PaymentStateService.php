@@ -5,6 +5,8 @@ namespace App\Services\Payments;
 use App\Jobs\SendOrderConfirmation;
 use App\Models\Payment;
 use App\Notifications\PaymentConfirmedNotification;
+use App\Notifications\PaymentFailedNotification;
+use App\Notifications\PaymentExpiredNotification;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -53,6 +55,18 @@ class PaymentStateService
 
             if ($status === 'expired') {
                 $this->restoreStock($payment);
+
+                if ($payment->order->user) {
+                    $payment->order->user->notify(
+                        new PaymentExpiredNotification($payment->order)
+                    );
+                }
+            }
+
+            if ($status === 'failed' && $payment->order->user) {
+                $payment->order->user->notify(
+                    new PaymentFailedNotification($payment->order)
+                );
             }
 
             return $payment;

@@ -79,5 +79,8 @@ return [
     'notifications_marked_read' => 'All notifications marked as read.',
     'notification_order_placed' => 'Your order :number has been placed.',
     'notification_payment_confirmed' => 'Payment for order :number has been confirmed.',
-
+    'admin_new_order' => 'New order received: :number',
+    'payment_failed' => 'Payment failed for order :number. Please try again.',
+    'payment_expired_notification' => 'Payment expired for order :number. Please review your order for available next steps.',
+    'order_status_updated' => 'Order :number status changed to :status.',
 ];

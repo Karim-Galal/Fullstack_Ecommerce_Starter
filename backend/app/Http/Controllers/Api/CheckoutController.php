@@ -17,6 +17,8 @@ use App\Services\Payments\PaymentInitiationService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use App\Models\User;
+use App\Notifications\NewOrderAdminNotification;
 
 class CheckoutController extends Controller
 {
@@ -300,6 +302,16 @@ class CheckoutController extends Controller
         $gateway = $paymentService->initiate($payment);
 
         $user->notify(new OrderPlacedNotification($order));
+
+        User::query()
+          ->where('status', 'active')
+          ->whereIn('role', ['master_admin', 'staff'])
+          ->get()
+          ->each(
+              fn (User $admin) => $admin->notify(
+                  new NewOrderAdminNotification($order)
+              )
+          );
 
         return response()->json([
             'order' => new OrderResource($order),
