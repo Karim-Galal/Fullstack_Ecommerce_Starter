@@ -5,9 +5,9 @@ import { Icon } from '@/components/icons';
 
 const variantStyles = {
   primary: 'bg-primary text-primary-on hover:bg-primary-hover',
-  secondary: 'bg-secondary text-secondary-on hover:bg-secondary-hover',
-  outline: 'border border-border bg-transparent hover:bg-surface-hover',
-  ghost: 'bg-transparent hover:bg-surface-hover',
+  secondary: 'border border-border bg-surface-sunken text-text-primary hover:bg-surface-hover',
+  outline: 'border border-border bg-transparent text-text-primary hover:bg-surface-hover',
+  ghost: 'bg-transparent text-text-primary hover:bg-surface-hover',
   destructive: 'bg-error text-error-on hover:bg-error/90',
   link: 'bg-transparent text-primary underline-offset-4 hover:underline',
 };
@@ -29,7 +29,7 @@ export const Button = forwardRef(
         ref={ref}
         type={type}
         disabled={isDisabled}
-        className={`inline-flex items-center justify-center font-semibold rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${variantStyles[variant]} ${sizeStyles[size]} ${className}`}
+        className={`inline-flex items-center justify-center font-semibold rounded-lg transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:opacity-50 disabled:cursor-not-allowed ${variantStyles[variant]} ${sizeStyles[size]} ${className}`}
         {...props}
       >
         {loading ? (
@@ -51,8 +51,4 @@ export const Button = forwardRef(
 
 Button.displayName = 'Button';
 
-export const ButtonGroup = ({ children, className = '', ...props }) => (
-  <div className={`inline-flex ${className}`} {...props}>
-    {children}
-  </div>
-);
+export { ButtonGroup } from './actions/ButtonGroup';

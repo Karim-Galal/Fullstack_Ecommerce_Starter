@@ -1,107 +1,106 @@
 'use client';
 
-export function Skeleton({ className = '', variant = 'text', width, height, count = 1, ...props }) {
-  const items = Array.from({ length: count }, (_, i) => (
+export function Skeleton({
+  variant = 'text',
+  width,
+  height,
+  count = 1,
+  rounded,
+  className = '',
+  style,
+  ...props
+}) {
+  const radius =
+    rounded ||
+    (variant === 'circular'
+      ? 'rounded-full'
+      : variant === 'rectangular'
+        ? 'rounded-lg'
+        : 'rounded');
+
+  const items = Array.from({ length: Math.max(count, 1) }, (_, index) => (
     <div
-      key={i}
-      className={`
-        animate-pulse rounded bg-neutral-200 dark:bg-neutral-700
-        ${className}
-      `}
-      style={{ width, height }}
+      key={index}
+      aria-hidden="true"
+      className={`animate-pulse bg-surface-sunken motion-reduce:animate-none ${radius} ${className}`}
+      style={{ width, height, ...style }}
       {...props}
     />
   ));
 
-  if (variant === 'circular') {
-    return items.map((item, i) => (
-      <div key={i} className="rounded-full" style={{ width, height }}>
-        {item}
-      </div>
-    ));
-  }
-
-  if (variant === 'rectangular') {
-    return items.map((item, i) => (
-      <div key={i} className="rounded-lg" style={{ width, height }}>
-        {item}
-      </div>
-    ));
-  }
+  if (items.length === 1) return items[0];
 
   return <div className="space-y-3">{items}</div>;
 }
 
-export function ProductCardSkeleton() {
-  return (
-    <article className="card group" variant="default" padding="none">
-      <div className="aspect-square bg-neutral-200 dark:bg-neutral-700 animate-pulse" />
-      <div className="p-4 space-y-3">
-        <Skeleton variant="text" width="70%" height="1.25rem" count={2} />
-        <Skeleton variant="text" width="40%" height="1.5rem" />
-        <Skeleton variant="text" width="100%" height="2.5rem" />
-      </div>
-    </article>
-  );
-}
-
 export function CardSkeleton({ lines = 3, className = '' }) {
-  const widths = Array.from({ length: lines }, (_, i) => 60 + i * 10);
-
   return (
-    <article className={`card ${className}`} variant="default" padding="md">
-      <Skeleton variant="rectangular" width="100%" height="150px" />
+    <div
+      aria-hidden="true"
+      className={`rounded-xl border border-border bg-surface p-5 ${className}`}
+    >
+      <Skeleton variant="rectangular" className="h-40 w-full" />
       <div className="mt-4 space-y-3">
-        {widths.map((width, i) => (
-          <Skeleton key={i} variant="text" width={`${width}%`} />
-        ))}
-      </div>
-    </article>
-  );
-}
-
-export function PageSkeleton({ className = '' }) {
-  return (
-    <div className={`shell space-y-8 ${className}`}>
-      <Skeleton variant="text" width="30%" height="2.5rem" />
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {Array.from({ length: 6 }, (_, i) => (
-          <ProductCardSkeleton key={i} />
+        {Array.from({ length: lines }, (_, index) => (
+          <Skeleton key={index} width={`${60 + index * 10}%`} className="h-4" />
         ))}
       </div>
     </div>
   );
 }
 
-export function LoadingSpinner({ size = 'md', className = '', 'aria-label': ariaLabel = 'Loading' }) {
+export function LoadingSpinner({
+  size = 'md',
+  className = '',
+  'aria-label': ariaLabel = 'Loading',
+}) {
   const sizeStyles = {
-    xs: 'w-3 h-3 border-1.5',
-    sm: 'w-4 h-4 border-2',
-    md: 'w-6 h-6 border-2',
-    lg: 'w-8 h-8 border-2',
-    xl: 'w-10 h-10 border-3',
+    xs: 'w-3 h-3',
+    sm: 'w-4 h-4',
+    md: 'w-6 h-6',
+    lg: 'w-8 h-8',
+    xl: 'w-10 h-10',
   };
 
   return (
     <svg
-      className={`${sizeStyles[size]} animate-spin text-primary ${className}`}
+      className={`${sizeStyles[size] || sizeStyles.md} animate-spin text-primary motion-reduce:animate-none ${className}`}
       viewBox="0 0 24 24"
+      role="status"
       aria-label={ariaLabel}
-      aria-hidden="true"
     >
-      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+      <circle
+        className="opacity-25"
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="currentColor"
+        strokeWidth="4"
+        fill="none"
+      />
+      <path
+        className="opacity-75"
+        fill="currentColor"
+        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+      />
     </svg>
   );
 }
 
-export function LoadingOverlay({ className = '', message }) {
+export function LoadingOverlay({ className = '', message, label = 'Loading' }) {
   return (
-    <div className={`fixed inset-0 z-[var(--z-toast)] flex items-center justify-center bg-white/80 dark:bg-neutral-950/80 backdrop-blur-sm ${className}`}>
+    <div
+      role="status"
+      aria-live="polite"
+      className={`fixed inset-0 z-[var(--z-toast)] flex items-center justify-center bg-surface/80 backdrop-blur-sm ${className}`}
+    >
       <div className="flex flex-col items-center gap-4 p-6">
-        <LoadingSpinner size="lg" />
+        <LoadingSpinner size="lg" aria-label={label} />
         {message && <p className="text-text-secondary">{message}</p>}
       </div>
     </div>
   );
 }
+
+export { ProductCardSkeleton } from './skeletons/ProductCardSkeleton';
+export { PageSkeleton } from './skeletons/PageSkeleton';

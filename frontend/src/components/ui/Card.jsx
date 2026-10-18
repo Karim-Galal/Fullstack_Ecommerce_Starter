@@ -6,7 +6,7 @@ export const Card = forwardRef(
   ({ children, className = '', variant = 'default', padding = 'md', ...props }, ref) => {
     const variantStyles = {
       default: 'bg-surface border border-border',
-      elevated: 'bg-surface-elevated shadow-md border-none',
+      elevated: 'bg-surface-elevated border border-border shadow-lg',
       outlined: 'bg-surface border-2 border-border',
       ghost: 'bg-transparent border-none',
     };

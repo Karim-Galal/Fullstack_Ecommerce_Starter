@@ -1,7 +1,7 @@
 'use client';
 
 const variantStyles = {
-  default: 'bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-200',
+  default: 'bg-surface-sunken text-text-secondary',
   primary: 'bg-primary/10 text-primary',
   success: 'bg-success/10 text-success',
   warning: 'bg-warning/10 text-warning',
@@ -40,30 +40,7 @@ export function Badge({ children, variant = 'default', size = 'md', className = 
   );
 }
 
-export function StatusBadge({ status, className = '', ...props }) {
-  const statusConfig = {
-    pending: { label: 'Pending', variant: 'warning', dot: true, dotColor: '#f59e0b' },
-    confirmed: { label: 'Confirmed', variant: 'info', dot: true, dotColor: '#3b82f6' },
-    processing: { label: 'Processing', variant: 'info', dot: true, dotColor: '#3b82f6' },
-    shipped: { label: 'Shipped', variant: 'primary', dot: true, dotColor: '#155e75' },
-    delivered: { label: 'Delivered', variant: 'success', dot: true, dotColor: '#10b981' },
-    cancelled: { label: 'Cancelled', variant: 'destructive', dot: true, dotColor: '#ef4444' },
-    refunded: { label: 'Refunded', variant: 'destructive', dot: true, dotColor: '#ef4444' },
-    approved: { label: 'Approved', variant: 'success', dot: true, dotColor: '#10b981' },
-    rejected: { label: 'Rejected', variant: 'destructive', dot: true, dotColor: '#ef4444' },
-    active: { label: 'Active', variant: 'success', dot: true, dotColor: '#10b981' },
-    inactive: { label: 'Inactive', variant: 'default', dot: true, dotColor: '#64748b' },
-    draft: { label: 'Draft', variant: 'default', dot: true, dotColor: '#64748b' },
-    published: { label: 'Published', variant: 'success', dot: true, dotColor: '#10b981' },
-    archived: { label: 'Archived', variant: 'default', dot: true, dotColor: '#64748b' },
-  };
-
-  const config = statusConfig[status] || { label: status, variant: 'default' };
-
-  return <Badge variant={config.variant} dot={config.dot} dotColor={config.dotColor} className={className} {...props}>
-    {config.label}
-  </Badge>;
-}
+export { StatusBadge } from './data-display/StatusBadge';
 
 export function PriceBadge({ price, currency = 'EGP', locale = 'en-EG', className = '', ...props }) {
   const formatted = new Intl.NumberFormat(locale, { style: 'currency', currency }).format(price);
