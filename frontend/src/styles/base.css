@@ -3,20 +3,60 @@
  * Global element defaults using design tokens.
  */
 
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  background-color: var(--surface);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+[dir="rtl"] body {
+  font-family: var(--font-sans-arabic);
+}
+
+::selection {
+  background-color: var(--accent);
+  color: var(--accent-on);
+}
+
+/* Links */
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Visible, consistent keyboard focus. Components may override with rings. */
+:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
 /* Headings */
 h1, h2, h3, h4, h5, h6 {
   margin: 0 0 var(--space-3);
-  font-weight: var(--font-bold);
+  font-family: var(--font-display);
+  font-weight: var(--font-semibold);
   line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
   color: var(--text-primary);
+  text-wrap: balance;
 }
 
-h1 { font-size: var(--text-4xl); }
-h2 { font-size: var(--text-3xl); }
+h1 { font-size: var(--text-4xl); letter-spacing: var(--tracking-display); }
+h2 { font-size: var(--text-3xl); letter-spacing: var(--tracking-display); }
 h3 { font-size: var(--text-2xl); }
 h4 { font-size: var(--text-xl); }
 h5 { font-size: var(--text-lg); }
-h6 { font-size: var(--text-base); }
+h6 { font-size: var(--text-base); letter-spacing: var(--tracking-normal); }
 
 /* Paragraphs */
 p {

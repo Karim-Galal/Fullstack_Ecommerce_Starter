@@ -19,6 +19,12 @@
   --color-brand-light: #383838;
   --color-brand-on: #202020;
 
+  /* Accent palette — restrained champagne tone for luxury highlights */
+  --color-accent: #d8b878;
+  --color-accent-hover: #e6ca92;
+  --color-accent-light: #2b2419;
+  --color-accent-on: #1c1c1c;
+
   /* Neutral palette */
   --color-neutral-0: #111111;
   --color-neutral-50: #1b1a18;
@@ -39,10 +45,13 @@
   --color-surface-elevated: #292929;
   --color-surface-sunken: #171717;
 
-  --color-ink: #f7f4ef;
-  --color-ink-muted: #c7c1b8;
-  --color-ink-subtle: #918c84;
+  --color-ink: #f5f3ef;
+  --color-ink-muted: #b8b3aa;
+  --color-ink-subtle: #8c877f;
   --color-ink-on-brand: #202020;
+
+  /* Shadow tone (used by layered shadow tokens) */
+  --shadow-rgb: 0 0 0;
 
   /* Borders */
   --color-border: #383838;
@@ -87,6 +96,11 @@
   --primary-hover: var(--color-brand-hover);
   --primary-light: var(--color-brand-light);
   --primary-on: var(--color-brand-on);
+
+  --accent: var(--color-accent);
+  --accent-hover: var(--color-accent-hover);
+  --accent-light: var(--color-accent-light);
+  --accent-on: var(--color-accent-on);
 
   --surface: var(--color-surface);
   --surface-hover: var(--color-surface-hover);
