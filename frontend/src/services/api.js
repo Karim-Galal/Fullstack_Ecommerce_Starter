@@ -5,12 +5,14 @@ const apiUrl =
 
 const backendUrl = apiUrl.replace(/\/api\/v1\/?$/, '');
 const guestCartTokenKey = 'guest-cart-token';
+const requestTimeout = 15000;
 
 const supportedLocales = ['en', 'ar'];
 const defaultLocale = 'en';
 
 export const apiClient = axios.create({
   baseURL: apiUrl,
+  timeout: requestTimeout,
   withCredentials: true,
   withXSRFToken: true,
   headers: {
@@ -18,6 +20,103 @@ export const apiClient = axios.create({
     'Content-Type': 'application/json',
   },
 });
+
+export class ApiError extends Error {
+  constructor(message, options = {}) {
+    super(message);
+
+    this.name = 'ApiError';
+    this.kind = options.kind || 'unknown';
+    this.status = options.status ?? null;
+    this.code = options.code ?? null;
+    this.errors = options.errors || {};
+    this.data = options.data ?? null;
+    this.retryable = options.retryable ?? false;
+    this.isApiError = true;
+  }
+}
+
+function getHttpErrorKind(status) {
+  if (status === 400) return 'bad_request';
+  if (status === 401) return 'unauthenticated';
+  if (status === 403) return 'forbidden';
+  if (status === 404) return 'not_found';
+  if (status === 408) return 'timeout';
+  if (status === 409) return 'conflict';
+  if (status === 419) return 'session_expired';
+  if (status === 422) return 'validation';
+  if (status === 429) return 'rate_limit';
+  if (status >= 500) return 'server';
+
+  return 'http';
+}
+
+export function normalizeApiError(error) {
+  if (error?.isApiError) {
+    return error;
+  }
+
+  if (!axios.isAxiosError(error)) {
+    return new ApiError(
+      'An unexpected error occurred.',
+      { kind: 'unknown' },
+    );
+  }
+
+  if (error.code === 'ERR_CANCELED') {
+    return new ApiError('Request was cancelled.', {
+      kind: 'cancelled',
+      code: error.code,
+    });
+  }
+
+  if (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT') {
+    return new ApiError('The request timed out.', {
+      kind: 'timeout',
+      code: error.code,
+      retryable: true,
+    });
+  }
+
+  if (!error.response) {
+    const isOffline =
+      typeof navigator !== 'undefined' && navigator.onLine === false;
+
+    return new ApiError(
+      isOffline
+        ? 'You are offline.'
+        : 'Unable to connect to the server.',
+      {
+        kind: isOffline ? 'offline' : 'network',
+        code: error.code,
+        retryable: true,
+      },
+    );
+  }
+
+  const { status, data } = error.response;
+  const kind = getHttpErrorKind(status);
+
+  const retryable =
+    status === 408 || status === 429 || status >= 500;
+
+  return new ApiError(
+    data?.message || 'The request could not be completed.',
+    {
+      kind,
+      status,
+      code: error.code,
+      errors:
+        data?.errors &&
+        typeof data.errors === 'object' &&
+        !Array.isArray(data.errors)
+          ? data.errors
+          : {},
+      data,
+      retryable,
+    },
+  );
+}
 
 export function getCurrentLocale() {
   if (typeof window === 'undefined') {
@@ -38,20 +137,39 @@ function getGuestCartToken() {
     return null;
   }
 
-  return window.localStorage.getItem(guestCartTokenKey);
+  try {
+    return window.localStorage.getItem(guestCartTokenKey);
+  } catch {
+    return null;
+  }
 }
 
 function saveGuestCartToken(token) {
-  if (typeof window !== 'undefined' && token) {
+  if (typeof window === 'undefined' || !token) {
+    return;
+  }
+
+  try {
     window.localStorage.setItem(guestCartTokenKey, token);
+  } catch {
+    // Storage may be unavailable in restricted browser contexts.
   }
 }
 
 export async function csrf() {
-  await axios.get(`${backendUrl}/sanctum/csrf-cookie`, {
-    withCredentials: true,
-    withXSRFToken: true,
-  });
+  try {
+    await axios.get(`${backendUrl}/sanctum/csrf-cookie`, {
+      timeout: requestTimeout,
+      withCredentials: true,
+      withXSRFToken: true,
+      headers: {
+        Accept: 'application/json',
+        'Accept-Language': getCurrentLocale(),
+      },
+    });
+  } catch (error) {
+    throw normalizeApiError(error);
+  }
 }
 
 export async function api(path, options = {}) {
@@ -86,20 +204,7 @@ export async function api(path, options = {}) {
 
     return response.status === 204 ? null : response.data;
   } catch (error) {
-    if (axios.isAxiosError(error) && error.response) {
-      const responseData = error.response.data;
-      const apiError = new Error(
-        responseData?.message || 'Request failed',
-      );
-
-      apiError.status = error.response.status;
-      apiError.errors = responseData?.errors || {};
-      apiError.data = responseData;
-
-      throw apiError;
-    }
-
-    throw error;
+    throw normalizeApiError(error);
   }
 }
 

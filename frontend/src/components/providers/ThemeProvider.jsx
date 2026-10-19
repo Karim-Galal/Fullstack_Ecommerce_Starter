@@ -1,14 +1,16 @@
 'use client';
 
 import { useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { useThemeStore } from '@/stores/themeStore';
 
 export function ThemeProvider({ children }) {
-  const { initTheme } = useThemeStore();
+  const pathname = usePathname();
+  const initTheme = useThemeStore((state) => state.initTheme);
 
   useEffect(() => {
     initTheme();
-  }, [initTheme]);
+  }, [pathname, initTheme]);
 
   return <>{children}</>;
 }

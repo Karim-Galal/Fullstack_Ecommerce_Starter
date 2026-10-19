@@ -37,6 +37,23 @@
   "productsTitle": "Products",
   "productsDescription": "Browse our catalog with categories, collections, and product details.",
   "cartDescription": "Guest and user carts with persistent storage and checkout flow.",
-  "ordersDescription": "Complete checkout with Stripe/Paymob and order management."
+  "ordersDescription": "Complete checkout with Stripe/Paymob and order management.",
 
+  "apiErrors": {
+    "offline": "You appear to be offline. Check your internet connection.",
+    "network": "Unable to connect to the server. Please try again.",
+    "timeout": "The request took too long. Please try again.",
+    "unauthenticated": "Your session may have expired. Please sign in again.",
+    "session_expired": "Your security session has expired. Please refresh and try again.",
+    "forbidden": "You do not have permission to perform this action.",
+    "not_found": "The requested resource could not be found.",
+    "validation": "Please check the information you entered.",
+    "conflict": "This action conflicts with the current state. Refresh and try again.",
+    "rate_limit": "Too many requests. Please wait before trying again.",
+    "server": "The server encountered a problem. Please try again later.",
+    "bad_request": "The request could not be processed.",
+    "http": "The request could not be completed.",
+    "cancelled": "The request was cancelled.",
+    "unknown": "An unexpected error occurred."
+  }
 }
