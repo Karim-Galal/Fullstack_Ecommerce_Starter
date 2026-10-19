@@ -2,7 +2,11 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Filters\Admin\ProductFilter;
+use App\Filters\Store\ProductFilter as StoreProductFilter;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\IndexAdminProductsRequest;
+use App\Http\Requests\IndexStoreProductsRequest;
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
 use App\Models\Product;
@@ -11,11 +15,18 @@ use Illuminate\Support\Str;
 
 class ProductController extends Controller
 {
-    public function index()
+    public function index(IndexStoreProductsRequest $request, StoreProductFilter $filter)
     {
-        return Product::where('is_active', true)
-            ->with(['translations', 'images', 'category'])
-            ->paginate(20);
+        $filters = $request->validated();
+        $perPage = (int) ($filters['per_page'] ?? 20);
+
+        return $filter
+            ->apply(
+                Product::where('is_active', true)
+                    ->with(['translations', 'images', 'category']),
+                $filters
+            )
+            ->paginate($perPage);
     }
 
     public function show(string $identifier)
@@ -33,12 +44,16 @@ class ProductController extends Controller
             ->firstOrFail();
     }
 
-    public function adminIndex()
+    public function adminIndex(IndexAdminProductsRequest $request, ProductFilter $filter)
     {
         $this->authorize('viewAny', Product::class);
 
-        return Product::with(['translations', 'images'])
-            ->paginate(30);
+        $filters = $request->validated();
+        $perPage = (int) ($filters['per_page'] ?? 30);
+
+        return $filter
+            ->apply(Product::with(['translations', 'images']), $filters)
+            ->paginate($perPage);
     }
 
     public function adminShow(Product $product)

@@ -18,6 +18,12 @@ backend/
 │   │       └── ExpirePendingPayments.php
 │   ├── Exceptions/
 │   │   └── CartMergeException.php
+│   ├── Filters/
+│   │   ├── Admin/
+│   │   │   ├── UserFilter.php
+│   │   │   └── ProductFilter.php
+│   │   └── Store/
+│   │       └── ProductFilter.php
 │   ├── Http/
 │   │   ├── Controllers/
 │   │   │   ├── Controller.php
@@ -257,7 +263,7 @@ All models in `app/Models/`:
 - **CouponPolicy**: viewAny, view, create, update, delete → checks `canAdmin('coupons.*')`
 - **OfferPolicy**: viewAny, view, create, update, delete → checks `canAdmin('offers.*')`
 - **ReviewPolicy**: view, create, update, delete, viewAny, moderate → purchase verification for create, ownership for update/delete
-- **UserPolicy**: manageStaff, update, delete → master_admin only
+- **UserPolicy**: viewAny, manageStaff, update, delete → `viewAny` allows active staff with `users.view` (master_admin bypasses); management actions remain master_admin only
 - **AddressPolicy**: viewAny, view, create, update, delete, setDefault → ownership for user, admin for admin
 - **PaymentPolicy**: view, refund → admin only for refund
 - **ShippingMethodPolicy**: viewAny, create, update, delete, setDefault → admin only

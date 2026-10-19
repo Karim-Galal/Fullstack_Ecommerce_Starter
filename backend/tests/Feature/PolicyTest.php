@@ -135,6 +135,21 @@ class PolicyTest extends TestCase
         $this->assertFalse($policy->delete($customer, $category));
     }
 
+    public function test_user_policy_view_any(): void
+    {
+        $admin = User::factory()->create(['role' => 'master_admin', 'status' => 'active']);
+        $staffWithPerm = User::factory()->create(['role' => 'staff', 'status' => 'active', 'permissions' => ['users.view']]);
+        $staffWithoutPerm = User::factory()->create(['role' => 'staff', 'status' => 'active', 'permissions' => ['products.view']]);
+        $customer = User::factory()->create(['role' => 'customer', 'status' => 'active']);
+
+        $policy = new UserPolicy;
+
+        $this->assertTrue($policy->viewAny($admin));
+        $this->assertTrue($policy->viewAny($staffWithPerm));
+        $this->assertFalse($policy->viewAny($staffWithoutPerm));
+        $this->assertFalse($policy->viewAny($customer));
+    }
+
     public function test_user_policy_manage_staff(): void
     {
         $admin = User::factory()->create(['role' => 'master_admin', 'status' => 'active']);

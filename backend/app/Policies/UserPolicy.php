@@ -6,6 +6,11 @@ use App\Models\User;
 
 class UserPolicy
 {
+    public function viewAny(User $user): bool
+    {
+        return $user->canAdmin('users.view');
+    }
+
     public function manageStaff(User $user): bool
     {
         return $user->isMasterAdmin();

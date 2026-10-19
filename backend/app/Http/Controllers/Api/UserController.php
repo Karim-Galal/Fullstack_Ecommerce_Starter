@@ -2,28 +2,28 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Filters\Admin\UserFilter;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\IndexUsersRequest;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
-    public function index(Request $request)
+    public function index(IndexUsersRequest $request, UserFilter $filter)
     {
-        $query = User::query();
+        $this->authorize('viewAny', User::class);
 
-        if ($request->filled('role')) {
-            $query->where('role', $request->string('role'));
-        }
+        $filters = $request->validated();
+        $perPage = (int) ($filters['per_page'] ?? 20);
 
-        $users = $query
-            ->orderBy('created_at', 'desc')
-            ->paginate(20);
+        $users = $filter
+            ->apply(User::query(), $filters)
+            ->paginate($perPage);
 
         return UserResource::collection($users);
     }

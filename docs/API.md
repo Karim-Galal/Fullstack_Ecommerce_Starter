@@ -50,8 +50,32 @@
 ### Products
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/products` | Paginated list (20/page). Query: `?page=1` |
+| GET | `/products` | Paginated list (20/page, max 100). Search, filter, and sort query parameters below |
 | GET | `/products/{identifier}` | Single product. Format: `{slug}-{id}` |
+
+**Visibility:** the public listing only ever returns products where `is_active` is `true`. Soft-deleted products and inactive products are excluded server-side and cannot be requested with any query parameter (for example, `?is_active=0` is ignored).
+
+**Query parameters for `GET /products`:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `search` | string | Partial match against the product's translated `name` (any locale), `sku`, or `slug`. OR conditions are grouped so they cannot bypass the active-product restriction |
+| `category_id` | integer | Must exist in `categories` |
+| `collection_id` | integer | Must exist in `collections`; matches products attached to the collection |
+| `min_price` | numeric | Inclusive lower bound, `>= 0` |
+| `max_price` | numeric | Inclusive upper bound, `>= 0`; must be greater than or equal to `min_price` |
+| `in_stock` | boolean | `1`/`true` for `stock > 0`, `0`/`false` for `stock = 0` |
+| `sort` | string | `price` or `created_at` (default `created_at`) |
+| `direction` | string | `asc` or `desc` (default `desc`) |
+| `page` | integer | Page number, minimum `1` |
+| `per_page` | integer | Items per page, minimum `1`, maximum `100` (default `20`) |
+
+Unknown query parameters are ignored. Invalid values for `category_id`, `collection_id`, `min_price`, `max_price`, `in_stock`, `sort`, `direction`, or out-of-range `per_page` return `422` with a validation error.
+
+Example:
+```
+GET /api/v1/products?search=shirt&category_id=3&collection_id=5&min_price=10&max_price=200&in_stock=1&sort=price&direction=asc&page=1&per_page=20
+```
 
 **Product List Response:**
 ```json
@@ -69,8 +93,10 @@
       "category": {"id": 1, "slug": "category", "translations": [...]}
     }
   ],
+  "current_page": 1,
   "links": {...},
-  "meta": {...}
+  "per_page": 20,
+  "total": 42
 }
 ```
 
@@ -263,11 +289,38 @@ Notifications are created only after the underlying operation succeeds and insid
 ### Admin - Products
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/admin/products` | Paginated (30/page), includes soft-deleted |
-| GET | `/admin/products/{product}` | Single product with trashed |
+| GET | `/admin/products` | Paginated, searchable, filterable, sortable list (soft-deleted products excluded) |
+| GET | `/admin/products/{product}` | Single product; soft-deleted products remain retrievable |
 | POST | `/admin/products` | Create. Body: `{slug?, sku?, category_id?, price, stock, is_active, translations: [{locale, name, description?, meta_title?, meta_description?}]}` |
 | PATCH | `/admin/products/{product}` | Update |
 | DELETE | `/admin/products/{product}` | Soft delete |
+
+**Authorization:** Listing requires `products.view`. Active staff holding `products.view` and `master_admin` (who bypasses permission checks) may list products. Customers and staff without the permission receive `403`.
+
+**Query parameters for `GET /admin/products`:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `search` | string | Partial match against product translation `name` (any locale), `sku`, or `slug`. OR conditions are grouped so they cannot bypass other filters |
+| `category_id` | integer | Must exist in `categories` |
+| `collection_id` | integer | Must exist in `collections`; matches products attached to the collection |
+| `is_active` | boolean | `1`/`true` or `0`/`false` |
+| `min_price` | numeric | Inclusive lower bound, `>= 0` |
+| `max_price` | numeric | Inclusive upper bound, `>= 0`; must be greater than or equal to `min_price` |
+| `in_stock` | boolean | `1`/`true` for `stock > 0`, `0`/`false` for `stock = 0` |
+| `created_from` | date | Inclusive lower bound on `created_at` |
+| `created_to` | date | Inclusive upper bound; includes the entire end day. Must not be earlier than `created_from` |
+| `sort` | string | `price`, `stock`, `created_at`, `is_active`, or `sku` (default `created_at`) |
+| `direction` | string | `asc` or `desc` (default `desc`) |
+| `page` | integer | Page number, minimum `1` |
+| `per_page` | integer | Items per page, minimum `1`, maximum `100` (default `30`) |
+
+Unknown query parameters are ignored. Invalid values for `category_id`, `collection_id`, `is_active`, `min_price`, `max_price`, `in_stock`, `created_from`, `created_to`, `sort`, `direction`, or out-of-range `per_page` return `422` with a validation error. The response uses the standard Laravel paginator envelope (`data`, `links`, `per_page`, `total`, etc.).
+
+Example:
+```
+GET /api/v1/admin/products?search=shirt&category_id=3&collection_id=5&is_active=1&min_price=10&max_price=200&in_stock=1&sort=price&direction=asc&page=1&per_page=30
+```
 
 **Admin Product Image Routes**
 | Method | Endpoint | Description |
@@ -384,13 +437,38 @@ Notifications are created only after the underlying operation succeeds and insid
 ### Admin - Users
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/admin/users` | Paginated list |
+| GET | `/admin/users` | Paginated, searchable, filterable, sortable list |
 | GET | `/admin/users/{user}` | Single user |
 | POST | `/admin/users` | Create staff/master_admin. Body: `{name, email, password, role, status, permissions?}` |
 | PATCH | `/admin/users/{user}` | Update user |
 | DELETE | `/admin/users/{user}` | Soft delete user |
 | PATCH | `/admin/users/{user}/activate` | Activate user |
 | PATCH | `/admin/users/{user}/deactivate` | Deactivate user |
+
+**Authorization:** Listing requires the `users.view` permission. Active staff holding `users.view` and `master_admin` (who bypasses permission checks) may list every user, including customers, other staff, and the master-admin account. Customers and staff without the permission receive `403`. Listing users does **not** grant update, delete, or staff-management rights — those remain governed by the existing `UserPolicy::update`/`delete`/`manageStaff` rules (master-admin only).
+
+**Query parameters for `GET /admin/users`:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `search` | string | Partial match against `name` or `email` (OR group, combined with all other filters using AND) |
+| `role` | string | `master_admin`, `staff`, or `customer` |
+| `status` | string | `active`, `inactive`, or `pending_approval` |
+| `email_verified` | boolean | `1`/`true` for verified, `0`/`false` for unverified (filters on `email_verified_at`) |
+| `created_from` | date | Inclusive lower bound on `created_at` |
+| `created_to` | date | Inclusive upper bound; includes the entire end day. Must not be earlier than `created_from` |
+| `sort` | string | `name`, `email`, `role`, `status`, or `created_at` (default `created_at`) |
+| `direction` | string | `asc` or `desc` (default `desc`) |
+| `page` | integer | Page number, minimum `1` |
+| `per_page` | integer | Items per page, minimum `1`, maximum `100` (default `20`) |
+
+Unknown query parameters are ignored. Invalid values for `role`, `status`, `email_verified`, `created_from`, `created_to`, `sort`, `direction`, or out-of-range `per_page` return `422` with a validation error. The response uses the standard `data` / `links` / `meta` envelope.
+
+Example:
+```
+GET /api/v1/admin/users?search=alice&role=staff&status=active&email_verified=1&created_from=2026-01-01&created_to=2026-06-30&sort=created_at&direction=desc&page=1&per_page=20
+```
+
 
 ### Admin - Orders
 | Method | Endpoint | Description |
@@ -443,6 +521,12 @@ Notifications are created only after the underlying operation succeeds and insid
 ## Pagination
 Default 20 per page (30 for admin). Query parameter: `?page=1`
 Response includes `links`, `meta` (Laravel standard).
+
+`GET /products` additionally accepts `?per_page=1..100` (default 20).
+`GET /admin/users` additionally accepts `?per_page=1..100` (default 20).
+`GET /admin/products` additionally accepts `?per_page=1..100` (default 30).
+
+Listings backed by API Resources (`/admin/users`, `/collections`) return the `data` / `links` / `meta` envelope. The raw-model listings (`/products`, `/admin/products`) return the native Laravel paginator shape (`data`, `links`, `per_page`, `total`, ...).
 
 ## Versioning
 All endpoints prefixed with `/api/v1/`. Future versions at `/api/v2/`.
