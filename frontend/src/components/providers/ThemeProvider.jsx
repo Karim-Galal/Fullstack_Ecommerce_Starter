@@ -2,15 +2,16 @@
 
 import { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
+import { applyTheme } from '@/lib/theme';
 import { useThemeStore } from '@/stores/themeStore';
 
 export function ThemeProvider({ children }) {
   const pathname = usePathname();
-  const initTheme = useThemeStore((state) => state.initTheme);
+  const theme = useThemeStore((state) => state.theme);
 
   useEffect(() => {
-    initTheme();
-  }, [pathname, initTheme]);
+    applyTheme(theme);
+  }, [pathname, theme]);
 
   return <>{children}</>;
 }

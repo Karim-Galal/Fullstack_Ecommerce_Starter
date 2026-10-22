@@ -12,6 +12,10 @@ const translationLoaders = {
     checkout: () => import('@/translations/en/checkout.json'),
     admin: () => import('@/translations/en/admin.json'),
     footer: () => import('@/translations/en/footer.json'),
+    home: () => import('@/translations/en/home.json'),
+    catalog: () => import('@/translations/en/catalog.json'),
+    wishlist: () => import('@/translations/en/wishlist.json'),
+    account: () => import('@/translations/en/account.json'),
     language: () => import('@/translations/en/language.json'),
     notFound: () => import('@/translations/en/notFound.json'),
     validation: () => import('@/translations/en/validation.json'),
@@ -25,6 +29,10 @@ const translationLoaders = {
     checkout: () => import('@/translations/ar/checkout.json'),
     admin: () => import('@/translations/ar/admin.json'),
     footer: () => import('@/translations/ar/footer.json'),
+    home: () => import('@/translations/ar/home.json'),
+    catalog: () => import('@/translations/ar/catalog.json'),
+    wishlist: () => import('@/translations/ar/wishlist.json'),
+    account: () => import('@/translations/ar/account.json'),
     language: () => import('@/translations/ar/language.json'),
     notFound: () => import('@/translations/ar/notFound.json'),
     validation: () => import('@/translations/ar/validation.json'),
@@ -33,7 +41,6 @@ const translationLoaders = {
 
 export default getRequestConfig(async ({ requestLocale }) => {
   const requestedLocale = await requestLocale;
-  console.log({ requestedLocale });
   const locale = requestedLocale || defaultLocale;
 
   if (!locales.includes(locale)) {

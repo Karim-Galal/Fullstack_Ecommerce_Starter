@@ -1,12 +1,13 @@
 import '../styles/index.css';
 import { ThemeProvider } from '@/components/providers/ThemeProvider';
+import { storeConfig } from '@/config/store';
 
 export const metadata = {
   title: {
-    default: 'Commerce Starter',
-    template: '%s | Commerce Starter',
+    default: `${storeConfig.name} — ${storeConfig.tagline}`,
+    template: `%s | ${storeConfig.name}`,
   },
-  description: 'A fast, secure storefront foundation.',
+  description: storeConfig.description,
 };
 
 export default function RootLayout({ children }) {

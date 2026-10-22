@@ -37,7 +37,7 @@ A single-store ecommerce application with Laravel 12 API backend and Next.js 16 
 - **Addresses**: Authenticated user address book with default address.
 - **Shipping Methods**: Admin CRUD, default method auto-applied at checkout.
 - **Orders/Invoices/Payments**: Complete flow with state machine, webhook handling, refunds.
-- **Frontend**: Minimal - layout, home page only. Directories exist for products, admin, i18n routes but are empty.
+- **Frontend**: Next.js 16 storefront with home, catalog, product detail, cart, wishlist, categories, collections, account, orders, addresses, and checkout. Admin UI and client-side payment confirmation remain incomplete.
 
 ## Coupon Feature (Implemented)
 - **Endpoints**: `GET/POST /api/v1/admin/coupons`, `GET/PATCH/DELETE /api/v1/admin/coupons/{coupon}`

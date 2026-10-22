@@ -19,6 +19,9 @@
 - [x] Account linking logic for Google OAuth
 
 ## Phase 2: Storefront Core
+- [x] Storefront shell (header, footer, language switcher, RTL)
+- [x] Storefront homepage (hero, principles, live new arrivals, craft story, CTA)
+- [x] Localized branded 404 page with real `404` status
 - [ ] Product listing page (`/products`)
   - Category filter sidebar
   - Pagination
@@ -125,7 +128,7 @@
 ## Phase 11: Polish & Production
 - [x] Consolidate database migrations (one create migration per table)
 - [x] Update factories and seeders with realistic development data
-- [x] Run and review the full backend test suite (118 tests, 474 assertions)
+- [x] Run and review the full backend test suite (233 tests, 881 assertions)
 - [ ] Resolve any confirmed failing tests
 - [ ] Comprehensive test coverage
 - [ ] CI/CD pipeline

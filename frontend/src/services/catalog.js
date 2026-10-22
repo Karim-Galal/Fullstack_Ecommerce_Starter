@@ -1,12 +1,26 @@
 import { api, csrf } from './api';
 
+function buildQuery(params = {}) {
+  const query = new URLSearchParams();
+
+  Object.entries(params).forEach(([key, value]) => {
+    if (value === undefined || value === null || value === '') return;
+    query.set(key, String(value));
+  });
+
+  return query.toString();
+}
+
 export const productService = {
-  async list(page = 1) {
-    return api(`/products?page=${page}`);
+  async list(params = {}) {
+    const filters = typeof params === 'number' ? { page: params } : params;
+    const query = buildQuery(filters);
+
+    return api(`/products${query ? `?${query}` : ''}`);
   },
 
   async get(identifier) {
-    return api(`/products/${identifier}`);
+    return api(`/products/${encodeURIComponent(identifier)}`);
   },
 };
 
@@ -17,12 +31,15 @@ export const categoryService = {
 };
 
 export const collectionService = {
-  async list(page = 1) {
-    return api(`/collections?page=${page}`);
+  async list(params = {}) {
+    const filters = typeof params === 'number' ? { page: params } : params;
+    const query = buildQuery(filters);
+
+    return api(`/collections${query ? `?${query}` : ''}`);
   },
 
   async get(identifier) {
-    return api(`/collections/${identifier}`);
+    return api(`/collections/${encodeURIComponent(identifier)}`);
   },
 };
 

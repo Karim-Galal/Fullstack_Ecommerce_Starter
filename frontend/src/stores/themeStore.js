@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { applyTheme, getInitialTheme, isValidTheme } from '@/lib/theme';
+import { applyTheme, isValidTheme } from '@/lib/theme';
 
 export const useThemeStore = create(
   persist(
@@ -10,6 +10,7 @@ export const useThemeStore = create(
 
       setTheme: (theme) => {
         if (!isValidTheme(theme)) return;
+
         applyTheme(theme);
         set({ theme });
       },
@@ -17,14 +18,9 @@ export const useThemeStore = create(
       toggleTheme: () => {
         const { theme } = get();
         const newTheme = theme === 'light' ? 'dark' : 'light';
+
         applyTheme(newTheme);
         set({ theme: newTheme });
-      },
-
-      initTheme: () => {
-        const theme = getInitialTheme();
-        applyTheme(theme);
-        set({ theme });
       },
 
       setLoading: (isLoading) => set({ isLoading }),

@@ -42,13 +42,6 @@ export function applyTheme(theme) {
 
   const validTheme = isValidTheme(theme) ? theme : defaultTheme;
   document.documentElement.setAttribute('data-theme', validTheme);
-
-  // Store in localStorage for persistence
-  try {
-    localStorage.setItem('theme', validTheme);
-  } catch {
-    // Ignore localStorage errors
-  }
 }
 
 /**
