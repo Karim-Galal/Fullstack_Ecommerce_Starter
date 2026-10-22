@@ -1,8 +1,15 @@
 'use client';
 
+import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
 import { Card } from '@/components/ui/Card';
 import { Icon } from '@/components/icons';
+import { storeConfig } from '@/config/store';
+import {
+  formatProductPrice,
+  getProductImage,
+  getProductName,
+} from '@/lib/product';
 
 export const ProductCard = ({
   product,
@@ -15,24 +22,15 @@ export const ProductCard = ({
   const tProduct = useTranslations('product');
 
   const primaryImage = product.images?.[0];
-  const productName =
-    product.translations?.find((translation) => translation.locale === locale)
-      ?.name ||
-    product.translations?.[0]?.name ||
-    product.name ||
-    product.slug ||
-    '';
+  const productName = getProductName(product, locale);
 
   const stock = Number(product.stock ?? 0);
   const inStock = stock > 0;
   const lowStock = inStock && stock <= 5;
 
-  const currency = product.currency || 'EGP';
+  const currency = product.currency || storeConfig.currency;
   const formatPrice = (value) =>
-    new Intl.NumberFormat(locale === 'ar' ? 'ar-EG' : 'en-EG', {
-      style: 'currency',
-      currency,
-    }).format(Number(value ?? 0));
+    formatProductPrice(value, locale, currency);
 
   const price = formatPrice(product.price);
   const originalPriceValue =
@@ -43,12 +41,15 @@ export const ProductCard = ({
     Number(originalPriceValue) > Number(product.price);
 
   const imageUrl =
-    primaryImage?.variants?.card ||
+    getProductImage(product) ||
     primaryImage?.url ||
     primaryImage?.path ||
     null;
 
   const imageAlt = primaryImage?.alt || productName;
+  const productHref = `/${locale}/products/${encodeURIComponent(
+    product.slug || product.id,
+  )}`;
 
   const handleAddToCart = () => {
     if (!inStock || typeof onAddToCart !== 'function') return;
@@ -62,35 +63,47 @@ export const ProductCard = ({
 
   return (
     <Card
-      className={`group h-full overflow-hidden ${className}`}
+      className={`group flex h-full flex-col overflow-hidden rounded-2xl bg-surface-elevated shadow-none transition-all duration-300 hover:border-border-strong hover:shadow-md ${className}`}
       variant="default"
       padding="none"
     >
-      <div className="relative aspect-square overflow-hidden bg-surface-sunken">
-        {imageUrl ? (
-          <img
-            src={imageUrl}
-            alt={imageAlt}
-            loading="lazy"
-            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-          />
-        ) : (
-          <div
-            className="flex h-full w-full items-center justify-center text-text-secondary"
-            aria-label={imageAlt}
-          >
-            <Icon name="image" size="2xl" />
-          </div>
-        )}
+      <div className="relative aspect-[4/5] overflow-hidden bg-surface-sunken">
+        <Link
+          href={productHref}
+          aria-label={productName}
+          className="absolute inset-0 block"
+        >
+          {imageUrl ? (
+            <img
+              src={imageUrl}
+              alt={imageAlt}
+              loading="lazy"
+              className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
+            />
+          ) : (
+            <div
+              className="flex h-full w-full flex-col items-center justify-center gap-4 bg-gradient-to-br from-[#f8f5f0] to-[#e9e3d9] text-text-tertiary"
+              aria-label={imageAlt}
+            >
+              <span
+                aria-hidden="true"
+                className="block size-16 rounded-full border-[7px] border-[#d3ccc0] shadow-inner"
+              />
+              <span className="text-[0.6rem] uppercase tracking-[0.24em]">
+                {storeConfig.name}
+              </span>
+            </div>
+          )}
+        </Link>
 
         {!inStock && (
-          <span className="absolute start-3 top-3 rounded-md bg-surface px-2 py-1 text-xs font-medium text-text-secondary shadow-sm">
+          <span className="absolute start-3 top-3 rounded-full border border-border bg-surface/95 px-2.5 py-1 text-[0.65rem] font-medium text-text-secondary backdrop-blur">
             {tProduct('outOfStock')}
           </span>
         )}
 
         {lowStock && (
-          <span className="absolute start-3 top-3 rounded-md bg-amber-100 px-2 py-1 text-xs font-medium text-amber-800">
+          <span className="absolute start-3 top-3 rounded-full bg-accent-light px-2.5 py-1 text-[0.65rem] font-medium text-text-primary">
             {tProduct('lowStock', { count: stock })}
           </span>
         )}
@@ -105,26 +118,35 @@ export const ProductCard = ({
               : tProduct('addToWishlist')
           }
           aria-pressed={isInWishlist}
-          className="absolute end-3 top-3 flex h-10 w-10 items-center justify-center rounded-full bg-surface text-text-primary shadow-sm transition-colors hover:bg-surface-elevated disabled:cursor-not-allowed disabled:opacity-50"
+          className={`absolute end-3 top-3 flex size-10 items-center justify-center rounded-full border border-border/70 bg-surface/95 text-text-primary shadow-sm backdrop-blur transition-colors hover:bg-surface-elevated disabled:cursor-not-allowed disabled:opacity-50 ${
+            isInWishlist ? 'text-accent' : ''
+          }`}
         >
           <Icon
             name="wishlist"
-            size="md"
-            className={isInWishlist ? 'fill-current text-red-500' : ''}
+            size="sm"
+            className={isInWishlist ? 'fill-current' : ''}
           />
         </button>
       </div>
 
-      <div className="flex h-full flex-col gap-3 p-4">
-        <h3 className="line-clamp-2 text-sm font-medium text-text-primary">
-          {productName}
+      <div className="flex flex-1 flex-col gap-3 p-4">
+        <h3 className="line-clamp-2 text-[0.95rem] font-medium leading-6 text-text-primary">
+          <Link
+            href={productHref}
+            className="transition-colors hover:text-accent"
+          >
+            {productName}
+          </Link>
         </h3>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="font-semibold text-text-primary">{price}</span>
+        <div className="mt-auto flex flex-wrap items-baseline gap-2">
+          <span className="text-sm font-semibold text-text-primary">
+            {price}
+          </span>
 
           {hasOriginalPrice && (
-            <span className="text-sm text-text-secondary line-through">
+            <span className="text-xs text-text-tertiary line-through">
               {formatPrice(originalPriceValue)}
             </span>
           )}
@@ -134,9 +156,9 @@ export const ProductCard = ({
           type="button"
           onClick={handleAddToCart}
           disabled={!inStock || typeof onAddToCart !== 'function'}
-          className="mt-auto flex min-h-10 w-full items-center justify-center gap-2 rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-lg border border-border-strong bg-transparent px-4 text-xs font-semibold transition-colors hover:border-primary hover:bg-primary hover:text-primary-on focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-50"
         >
-          <Icon name="cart" size="sm" />
+          <Icon name="cart" size="xs" />
           <span>{tProduct('addToCart')}</span>
         </button>
       </div>

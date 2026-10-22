@@ -5,10 +5,11 @@ import { useLocale, useTranslations } from 'next-intl';
 import { usePathname } from 'next/navigation';
 
 const navigationItems = [
-  { key: 'home', href: '/' },
-  { key: 'shop', href: '/products' },
-  { key: 'categories', href: '/categories' },
-  { key: 'collections', href: '/collections' },
+  { key: 'home', path: '/', anchor: null },
+  { key: 'newArrivals', path: '/', anchor: 'new-arrivals' },
+  { key: 'ourCraft', path: '/', anchor: 'craft' },
+  { key: 'shop', path: '/products', anchor: null },
+  { key: 'collections', path: '/collections', anchor: null },
 ];
 
 export function DesktopNavigation() {
@@ -18,45 +19,57 @@ export function DesktopNavigation() {
 
   const normalizedPath =
     pathname.replace(new RegExp(`^/${locale}(?=/|$)`), '') || '/';
+  const isArabic = locale === 'ar';
 
-  const isActive = (href) => {
-    if (href === '/') {
+  const isActive = (item) => {
+    if (item.anchor) return false;
+
+    if (item.path === '/') {
       return normalizedPath === '/';
     }
 
     return (
-      normalizedPath === href ||
-      normalizedPath.startsWith(`${href}/`)
+      normalizedPath === item.path ||
+      normalizedPath.startsWith(`${item.path}/`)
     );
+  };
+
+  const buildHref = (item) => {
+    const path = item.path === '/' ? '' : item.path;
+    const anchor = item.anchor ? `#${item.anchor}` : '';
+
+    return `/${locale}${path}${anchor}`;
   };
 
   return (
     <nav
-      aria-label={t('home')}
-      className="hidden items-center gap-6 md:flex"
+      aria-label={t('mainNavigation')}
+      className="hidden items-center gap-7 md:flex lg:gap-9"
     >
       {navigationItems.map((item) => {
-        const active = isActive(item.href);
+        const active = isActive(item);
 
         return (
           <Link
             key={item.key}
-            href={`/${locale}${item.href === '/' ? '' : item.href}`}
+            href={buildHref(item)}
             aria-current={active ? 'page' : undefined}
-            className={`group relative py-2 text-sm font-medium transition-colors duration-200 ${
+            className={`group relative py-2 transition-colors duration-200 ${
+              isArabic
+                ? 'text-sm font-medium'
+                : 'text-[0.72rem] font-semibold uppercase tracking-[0.18em]'
+            } ${
               active
-                ? 'text-primary'
-                : 'text-text-secondary hover:text-primary'
+                ? 'text-text-primary'
+                : 'text-text-secondary hover:text-text-primary'
             }`}
           >
             {t(item.key)}
 
             <span
               aria-hidden="true"
-              className={`absolute inset-x-0 -bottom-0.5 h-0.5 origin-center rounded-full bg-primary transition-transform duration-200 ease-out ${
-                active
-                  ? 'scale-x-100'
-                  : 'scale-x-0 group-hover:scale-x-100'
+              className={`absolute inset-x-0 bottom-0 h-px origin-center bg-text-primary transition-transform duration-300 ease-out ${
+                active ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'
               }`}
             />
           </Link>

@@ -53,6 +53,7 @@ import {
   RotateCcw,
 
   // Status
+  Check,
   CheckCircle,
   AlertCircle,
   AlertTriangle,
@@ -143,6 +144,7 @@ export const icons = {
   undo: RotateCcw,
 
   // Status
+  check: Check,
   success: CheckCircle,
   error: AlertCircle,
   warning: AlertTriangle,

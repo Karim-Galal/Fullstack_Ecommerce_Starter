@@ -3,95 +3,139 @@
 import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
+import { storeConfig } from '@/config/store';
+
+const [brandLead, ...brandRestParts] = storeConfig.name.split(' ');
+const brandRest = brandRestParts.join(' ');
 
 export default function Footer() {
   const locale = useLocale();
-  const tCommon = useTranslations('common');
   const tFooter = useTranslations('footer');
+  const tNav = useTranslations('navigation');
 
   const year = new Date().getFullYear();
 
+  const exploreLinks = [
+    { href: `/${locale}`, label: tNav('home') },
+    { href: `/${locale}#new-arrivals`, label: tFooter('newArrivals') },
+    { href: `/${locale}#craft`, label: tFooter('ourCraft') },
+    { href: `/${locale}/products`, label: tNav('shop') },
+    { href: `/${locale}/categories`, label: tNav('categories') },
+    { href: `/${locale}/collections`, label: tNav('collections') },
+  ];
+
+  const accountLinks = [
+    { href: `/${locale}/login`, label: tNav('login') },
+    { href: `/${locale}/register`, label: tNav('register') },
+    { href: `/${locale}/account`, label: tNav('account') },
+    { href: `/${locale}/orders`, label: tNav('orders') },
+  ];
+
+  const contactEmail = storeConfig.contact.email;
+  const contactPhone = storeConfig.contact.phone;
+
   return (
     <footer className="mt-auto border-t border-border bg-surface-sunken">
-      <div className="shell py-10 md:py-12">
-        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="sm:col-span-2">
+      <div className="shell py-14 sm:py-16">
+        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.7fr_1fr_1fr]">
+          <div>
             <Link
-              href="/"
-              className="text-xl font-bold text-text-primary transition-colors hover:text-primary"
+              href={`/${locale}`}
+              className="group inline-flex flex-col gap-1 leading-none"
+              aria-label={storeConfig.name}
             >
-              {tCommon('appName')}
+              <span className="text-sm font-semibold uppercase tracking-[0.34em] text-text-primary">
+                {brandLead}
+              </span>
+
+              {brandRest && (
+                <span className="text-[0.55rem] font-medium uppercase tracking-[0.44em] text-text-tertiary transition-colors group-hover:text-accent">
+                  {brandRest}
+                </span>
+              )}
             </Link>
 
-            <p className="mt-3 max-w-md text-sm leading-6 text-text-secondary">
-              {tCommon('heroDescription')}
+            <p className="mt-5 max-w-sm text-sm leading-6 text-text-secondary">
+              {storeConfig.description}
             </p>
+
+            <p className="mt-4 text-[0.65rem] uppercase tracking-[0.24em] text-text-tertiary">
+              {tFooter('silverNote')}
+            </p>
+
+            {(contactEmail || contactPhone) && (
+              <div className="mt-6 space-y-1 text-sm text-text-secondary">
+                {contactEmail && (
+                  <p>
+                    <a
+                      href={`mailto:${contactEmail}`}
+                      className="transition-colors hover:text-text-primary"
+                    >
+                      {contactEmail}
+                    </a>
+                  </p>
+                )}
+
+                {contactPhone && (
+                  <p>
+                    <a
+                      href={`tel:${contactPhone}`}
+                      className="transition-colors hover:text-text-primary"
+                    >
+                      {contactPhone}
+                    </a>
+                  </p>
+                )}
+              </div>
+            )}
           </div>
 
-          <div>
-            <h2 className="font-semibold text-text-primary">
-              {tFooter('about')}
-            </h2>
+          <nav aria-label={tFooter('explore')}>
+            <h3 className="text-[0.65rem] font-semibold uppercase tracking-[0.24em] text-text-tertiary">
+              {tFooter('explore')}
+            </h3>
 
-            <ul className="mt-4 space-y-3 text-sm text-text-secondary">
-              <li>
-                <Link href="/about" className="transition-colors hover:text-primary">
-                  {tFooter('about')}
-                </Link>
-              </li>
-              <li>
-                <Link href="/contact" className="transition-colors hover:text-primary">
-                  {tFooter('contact')}
-                </Link>
-              </li>
+            <ul className="mt-5 space-y-3 text-sm text-text-secondary">
+              {exploreLinks.map((link) => (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    className="transition-colors hover:text-text-primary"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
             </ul>
-          </div>
+          </nav>
 
-          <div>
-            <h2 className="font-semibold text-text-primary">
-              {tFooter('contact')}
-            </h2>
+          <nav aria-label={tFooter('account')}>
+            <h3 className="text-[0.65rem] font-semibold uppercase tracking-[0.24em] text-text-tertiary">
+              {tFooter('account')}
+            </h3>
 
-            <ul className="mt-4 space-y-3 text-sm text-text-secondary">
-              <li>
-                <Link href="/faq" className="transition-colors hover:text-primary">
-                  {tFooter('faq')}
-                </Link>
-              </li>
-              <li>
-                <Link href="/shipping" className="transition-colors hover:text-primary">
-                  {tFooter('shipping')}
-                </Link>
-              </li>
-              <li>
-                <Link href="/returns" className="transition-colors hover:text-primary">
-                  {tFooter('returns')}
-                </Link>
-              </li>
-              <li>
-                <Link href="/privacy" className="transition-colors hover:text-primary">
-                  {tFooter('privacy')}
-                </Link>
-              </li>
-              <li>
-                <Link href="/terms" className="transition-colors hover:text-primary">
-                  {tFooter('terms')}
-                </Link>
-              </li>
+            <ul className="mt-5 space-y-3 text-sm text-text-secondary">
+              {accountLinks.map((link) => (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    className="transition-colors hover:text-text-primary"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
             </ul>
-          </div>
+          </nav>
         </div>
 
-        <div className="mt-8 flex flex-col gap-4 border-t border-border pt-6 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm text-text-tertiary">
-            © {year} {tCommon('appName')}. {tFooter('rightsReserved')}.
+        <div className="mt-12 flex flex-col gap-4 border-t border-border pt-6 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-xs text-text-tertiary">
+            © {year} {storeConfig.name}. {tFooter('rightsReserved')}.
           </p>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <LanguageSwitcher />
-            <span className="text-sm text-text-secondary">
-              {locale === 'ar' ? 'العربية' : 'English'}
-            </span>
           </div>
         </div>
       </div>

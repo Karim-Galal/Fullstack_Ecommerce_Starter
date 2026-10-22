@@ -51,14 +51,14 @@ export default function UserMenu({ user, onLogout }) {
     <div ref={menuRef} className="relative">
       <button
         type="button"
-        className="flex size-10 items-center justify-center rounded-lg text-text-secondary transition-colors hover:bg-surface-hover hover:text-primary focus-visible:outline-2 focus-visible:outline-primary"
+        className="flex size-10 items-center justify-center rounded-full text-text-secondary transition-colors hover:bg-surface-hover hover:text-text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
         onClick={() => setOpen((value) => !value)}
         aria-expanded={open}
         aria-haspopup="menu"
         aria-label={t('account')}
       >
         {user ? (
-          <span className="flex size-8 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
+          <span className="flex size-8 items-center justify-center rounded-full bg-surface-sunken text-sm font-semibold text-text-primary">
             {user.name?.trim()?.charAt(0)?.toUpperCase() || 'U'}
           </span>
         ) : (
@@ -68,7 +68,7 @@ export default function UserMenu({ user, onLogout }) {
 
       {open && (
         <div
-          className="absolute end-0 top-full z-50 mt-2 w-60 overflow-hidden rounded-xl border border-border bg-surface shadow-lg"
+          className="absolute end-0 top-full z-50 mt-2 w-60 overflow-hidden rounded-xl border border-border bg-surface-elevated shadow-lg"
           role="menu"
         >
           {user ? (

@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1100" width="900" height="1100" role="img">
+  <title>Close-up of a polished silver ring</title>
+  <defs>
+    <radialGradient id="craft-bg" cx="46%" cy="40%" r="80%">
+      <stop offset="0" stop-color="#faf8f4" />
+      <stop offset="0.55" stop-color="#eeeae2" />
+      <stop offset="1" stop-color="#ddd7cc" />
+    </radialGradient>
+    <linearGradient id="craft-silver" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7d7d7d" />
+      <stop offset="0.18" stop-color="#f9f9f9" />
+      <stop offset="0.36" stop-color="#b7b7b7" />
+      <stop offset="0.55" stop-color="#ffffff" />
+      <stop offset="0.72" stop-color="#9a9a9a" />
+      <stop offset="0.88" stop-color="#ededed" />
+      <stop offset="1" stop-color="#6b6b6b" />
+    </linearGradient>
+    <linearGradient id="craft-silver-soft" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8f8b84" />
+      <stop offset="0.35" stop-color="#cfcac2" />
+      <stop offset="0.7" stop-color="#a29d95" />
+      <stop offset="1" stop-color="#e3ded5" />
+    </linearGradient>
+    <filter id="craft-blur" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="26" />
+    </filter>
+    <filter id="craft-soft-shadow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="12" />
+    </filter>
+  </defs>
+
+  <rect width="900" height="1100" fill="url(#craft-bg)" />
+  <ellipse cx="430" cy="360" rx="330" ry="300" fill="#ffffff" opacity="0.55" filter="url(#craft-blur)" />
+  <ellipse cx="470" cy="930" rx="260" ry="58" fill="#6e665b" opacity="0.28" filter="url(#craft-blur)" />
+
+  <path d="M90 900 C 210 690, 690 610, 830 790" fill="none" stroke="url(#craft-silver-soft)" stroke-width="18" stroke-linecap="round" stroke-dasharray="2 30" opacity="0.9" />
+
+  <g transform="rotate(-18 448 612)">
+    <ellipse cx="466" cy="632" rx="196" ry="266" fill="none" stroke="#6e665b" stroke-width="52" opacity="0.22" filter="url(#craft-soft-shadow)" />
+    <ellipse cx="448" cy="612" rx="196" ry="266" fill="none" stroke="url(#craft-silver)" stroke-width="48" />
+    <ellipse cx="448" cy="612" rx="196" ry="266" fill="none" stroke="#ffffff" stroke-width="6" opacity="0.7" stroke-dasharray="120 380" stroke-linecap="round" />
+    <ellipse cx="448" cy="612" rx="218" ry="288" fill="none" stroke="#ffffff" stroke-width="2" opacity="0.35" />
+    <ellipse cx="448" cy="612" rx="174" ry="244" fill="none" stroke="#4c4c4c" stroke-width="2" opacity="0.18" />
+  </g>
+
+  <g fill="#ffffff" opacity="0.85">
+    <path d="M232 288 l6 19 19 6 -19 6 -6 19 -6 -19 -19 -6 19 -6z" opacity="0.75" />
+    <path d="M684 402 l4 12 12 4 -12 4 -4 12 -4 -12 -12 -4 12 -4z" opacity="0.55" />
+  </g>
+</svg>

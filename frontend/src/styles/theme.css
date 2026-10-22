@@ -124,7 +124,7 @@
 
 /* Runtime tokens that are not Tailwind utilities */
 :root {
-  --font-sans-arabic: 'Tajawal', 'Noto Sans Arabic', 'Segoe UI', Tahoma, Arial, sans-serif;
+  --font-sans-arabic: 'Cairo', 'Noto Sans Arabic', 'Segoe UI', Tahoma, Arial, sans-serif;
 
   --duration-fast: 75ms;
   --duration-normal: 150ms;
