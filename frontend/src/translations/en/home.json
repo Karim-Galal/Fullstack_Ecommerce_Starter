@@ -1,0 +1,46 @@
+{
+  "eyebrow": "Fine silver jewellery for him",
+  "heroTitle": "Quietly bold. Crafted in silver.",
+  "heroDescription": "A considered collection of men's silver jewellery, made for the everyday.",
+  "heroPrimary": "Explore new arrivals",
+  "heroSecondary": "Our craft",
+  "heroNote": "New collection — silver, considered",
+  "heroImageAlt": "Polished silver rings and a chain resting on a dark surface",
+  "principles": {
+    "oneTitle": "Considered form",
+    "oneText": "Clean lines that let the material speak.",
+    "twoTitle": "Quiet detail",
+    "twoText": "Small finishes that reward a closer look.",
+    "threeTitle": "Made for every day",
+    "threeText": "Pieces designed to be worn, not saved."
+  },
+  "arrivals": {
+    "eyebrow": "The latest",
+    "title": "New arrivals",
+    "description": "Fresh pieces from the collection, added as they are ready.",
+    "viewAll": "View all pieces",
+    "loading": "Loading new arrivals",
+    "errorTitle": "We couldn't load the collection",
+    "errorText": "The shop may be temporarily unavailable. Check your connection and try again.",
+    "retry": "Try again",
+    "emptyTitle": "New pieces are on their way",
+    "emptyText": "Check back soon to discover the latest additions.",
+    "addedToCart": "Added to cart",
+    "addError": "This piece could not be added to your cart. Please try again.",
+    "availabilityNote": "Only pieces currently available in the shop are shown."
+  },
+  "craft": {
+    "eyebrow": "Our craft",
+    "title": "Made to be worn, not saved.",
+    "textOne": "We start with form: clean lines, balanced proportions, and a silver surface that catches the light quietly.",
+    "textTwo": "Each piece is designed to stand alone or layer with others, becoming part of the details you wear every day.",
+    "imageAlt": "Close-up of a polished silver ring",
+    "primary": "Discover the collection"
+  },
+  "closing": {
+    "title": "Find your everyday silver.",
+    "text": "Explore the latest pieces or create an account to follow your orders.",
+    "primary": "Shop new arrivals",
+    "secondary": "Create an account"
+  }
+}

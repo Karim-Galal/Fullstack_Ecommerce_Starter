@@ -14,5 +14,19 @@
   "couponCode": "Coupon Code",
   "applyCoupon": "Apply",
   "couponApplied": "Coupon applied successfully",
-  "invalidCoupon": "Invalid or expired coupon code"
+  "invalidCoupon": "Invalid or expired coupon code",
+  "loading": "Loading your cart",
+  "errorTitle": "We couldn't load your cart",
+  "errorText": "Please try again.",
+  "retry": "Try again",
+  "price": "Price",
+  "lineTotal": "Line total",
+  "updating": "Updating...",
+  "shippingAtCheckout": "Calculated at checkout",
+  "checkoutNote": "Shipping and any discounts are calculated at checkout.",
+  "loginToCheckout": "Sign in to complete your order",
+  "addedToCart": "Added to cart",
+  "removeError": "This item could not be removed.",
+  "updateError": "This item could not be updated.",
+  "viewCart": "View cart"
 }

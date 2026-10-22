@@ -1,0 +1,14 @@
+{
+  "eyebrow": "Saved pieces",
+  "title": "Your wishlist",
+  "description": "Pieces you are considering, kept in one place.",
+  "loading": "Loading your wishlist",
+  "empty": "Your wishlist is empty",
+  "emptyMessage": "Save pieces you love and find them here.",
+  "browse": "Browse the shop",
+  "remove": "Remove",
+  "loginNote": "Sign in to keep your wishlist across devices.",
+  "errorTitle": "We couldn't load your wishlist",
+  "errorText": "Please try again.",
+  "retry": "Try again"
+}

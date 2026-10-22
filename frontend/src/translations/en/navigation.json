@@ -1,6 +1,8 @@
 {
   "home": "Home",
   "shop": "Shop",
+  "newArrivals": "New Arrivals",
+  "ourCraft": "Our Craft",
   "products": "Products",
   "categories": "Categories",
   "collections": "Collections",
@@ -19,5 +21,10 @@
   "wishlist": "Wishlist",
   "addresses": "Addresses",
   "reviews": "Reviews",
-  "closeMenu": "Close menu"
+  "mainNavigation": "Main navigation",
+  "openMenu": "Open menu",
+  "closeMenu": "Close menu",
+  "themeToggle": "Toggle theme",
+  "themeLight": "Switch to light mode",
+  "themeDark": "Switch to dark mode"
 }
