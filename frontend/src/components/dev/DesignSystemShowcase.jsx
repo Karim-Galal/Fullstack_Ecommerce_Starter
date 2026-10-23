@@ -5,6 +5,8 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useLocale } from 'next-intl';
 import { Icon } from '@/components/icons';
 import { useThemeStore } from '@/stores/themeStore';
+import { ThemePaletteControls } from '@/components/dev/ThemePaletteControls';
+
 import {
   Button,
   ButtonGroup,
@@ -298,6 +300,7 @@ function Showcase() {
             <Button variant="outline" size="sm" leftIcon="sun" onClick={toggleTheme}>
               {theme === 'dark' ? t.light : t.dark}
             </Button>
+            <ThemePaletteControls />
             <Button variant="outline" size="sm" leftIcon="globe" onClick={switchLocale}>
               {locale === 'en' ? 'العربية' : 'English'}
             </Button>

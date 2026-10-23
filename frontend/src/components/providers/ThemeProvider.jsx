@@ -8,10 +8,11 @@ import { useThemeStore } from '@/stores/themeStore';
 export function ThemeProvider({ children }) {
   const pathname = usePathname();
   const theme = useThemeStore((state) => state.theme);
+  const palette = useThemeStore((state) => state.palette);
 
   useEffect(() => {
-    applyTheme(theme);
-  }, [pathname, theme]);
+    applyTheme(theme, palette);
+  }, [pathname, theme, palette]);
 
-  return <>{children}</>;
+  return children;
 }

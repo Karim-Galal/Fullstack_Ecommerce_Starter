@@ -1,122 +1,104 @@
-
+/* Light mode palettes. Keep data-theme for mode and data-palette for brand identity. */
 :root,
 :root[data-theme="light"] {
   color-scheme: light;
 
-  /* Brand palette */
-  --color-brand-50: #f7f7f7;
-  --color-brand-100: #eeeeee;
-  --color-brand-200: #dedede;
-  --color-brand-300: #c7c7c7;
-  --color-brand-400: #969696;
-  --color-brand-500: #202020;
-  --color-brand-600: #1b1b1b;
-  --color-brand-700: #171717;
-  --color-brand-800: #111111;
-  --color-brand-900: #080808;
-
-  --color-brand: #202020;
-  --color-brand-hover: #383838;
-  --color-brand-light: #eeeeee;
+  /* Default palette: Deep Teal & Ivory */
+  --color-brand-50: #effaf8;
+  --color-brand-100: #d7f1ec;
+  --color-brand-200: #b0e3d9;
+  --color-brand-300: #7bcdbf;
+  --color-brand-400: #43ae9e;
+  --color-brand-500: #0f766e;
+  --color-brand-600: #0d665f;
+  --color-brand-700: #115e59;
+  --color-brand-800: #124b48;
+  --color-brand-900: #103f3d;
+  --color-brand: #0f766e;
+  --color-brand-hover: #115e59;
+  --color-brand-light: #d7f1ec;
   --color-brand-on: #ffffff;
 
-  /* Accent palette — restrained champagne tone for luxury highlights */
-  --color-accent: #a5824a;
-  --color-accent-hover: #8f7140;
-  --color-accent-light: #f4ecdd;
+  --color-accent: #9a7138;
+  --color-accent-hover: #805b2c;
+  --color-accent-light: #f3e8d4;
   --color-accent-on: #ffffff;
 
-  /* Neutral palette */
   --color-neutral-0: #ffffff;
-  --color-neutral-50: #faf9f7;
-  --color-neutral-100: #f2f0ec;
-  --color-neutral-200: #e5e2dc;
-  --color-neutral-300: #d1cdc5;
-  --color-neutral-400: #a7a39b;
-  --color-neutral-500: #77736c;
-  --color-neutral-600: #5c5852;
-  --color-neutral-700: #403d38;
-  --color-neutral-800: #292724;
-  --color-neutral-900: #1b1a18;
-  --color-neutral-950: #111111;
+  --color-neutral-50: #faf9f6;
+  --color-neutral-100: #f3f0e9;
+  --color-neutral-200: #e5e0d5;
+  --color-neutral-300: #d0c8b9;
+  --color-neutral-400: #a69d8c;
+  --color-neutral-500: #777064;
+  --color-neutral-600: #5c554b;
+  --color-neutral-700: #403b34;
+  --color-neutral-800: #292620;
+  --color-neutral-900: #1b1a17;
+  --color-neutral-950: #11110f;
 
-  /* Surfaces and text */
-  --color-surface: #f7f4ef;
-  --color-surface-hover: #efebe5;
+  --color-surface: #f8f6f0;
+  --color-surface-hover: #efede5;
   --color-surface-elevated: #ffffff;
-  --color-surface-sunken: #efebe5;
-
-  --color-ink: #1b1a18;
-  --color-ink-muted: #6b6760;
-  --color-ink-subtle: #928d85;
+  --color-surface-sunken: #efede5;
+  --color-ink: #192522;
+  --color-ink-muted: #4f5e59;
+  --color-ink-subtle: #687771;
   --color-ink-on-brand: #ffffff;
+  --shadow-rgb: 25 37 34;
+  --color-border: #d9ded7;
+  --color-border-strong: #b7c4bd;
+  --color-border-focus: #0f766e;
 
-  /* Shadow tone (used by layered shadow tokens) */
-  --shadow-rgb: 30 27 23;
-
-  /* Borders */
-  --color-border: #e1ddd6;
-  --color-border-strong: #c7c1b8;
-  --color-border-focus: #202020;
-
-  /* Status palettes */
+  /* Functional status colors are independent of the brand palette. */
   --color-success-50: #ecfdf5;
   --color-success-100: #d1fae5;
   --color-success-500: #10b981;
   --color-success-600: #059669;
   --color-success-700: #047857;
-  --color-success: #059669;
+  --color-success: #047857;
   --color-success-on: #ffffff;
-
   --color-warning-50: #fffbeb;
   --color-warning-100: #fef3c7;
   --color-warning-500: #f59e0b;
   --color-warning-600: #d97706;
   --color-warning-700: #b45309;
-  --color-warning: #d97706;
+  --color-warning: #b45309;
   --color-warning-on: #ffffff;
-
   --color-error-50: #fef2f2;
   --color-error-100: #fee2e2;
   --color-error-500: #ef4444;
   --color-error-600: #dc2626;
   --color-error-700: #b91c1c;
-  --color-error: #dc2626;
+  --color-error: #b91c1c;
   --color-error-on: #ffffff;
-
   --color-info-50: #eff6ff;
   --color-info-100: #dbeafe;
   --color-info-500: #3b82f6;
   --color-info-600: #2563eb;
   --color-info-700: #1d4ed8;
-  --color-info: #2563eb;
+  --color-info: #1d4ed8;
   --color-info-on: #ffffff;
 
-  /* Semantic aliases */
   --primary: var(--color-brand);
   --primary-hover: var(--color-brand-hover);
   --primary-light: var(--color-brand-light);
   --primary-on: var(--color-brand-on);
-
   --accent: var(--color-accent);
   --accent-hover: var(--color-accent-hover);
   --accent-light: var(--color-accent-light);
   --accent-on: var(--color-accent-on);
-
   --surface: var(--color-surface);
   --surface-hover: var(--color-surface-hover);
   --surface-elevated: var(--color-surface-elevated);
   --surface-sunken: var(--color-surface-sunken);
-
   --text-primary: var(--color-ink);
   --text-secondary: var(--color-ink-muted);
   --text-tertiary: var(--color-ink-subtle);
   --text-on-primary: var(--color-ink-on-brand);
-
   --border: var(--color-border);
   --border-strong: var(--color-border-strong);
   --border-focus: var(--color-border-focus);
-
   --success: var(--color-success);
   --success-on: var(--color-success-on);
   --warning: var(--color-warning);
@@ -125,6 +107,156 @@
   --error-on: var(--color-error-on);
   --info: var(--color-info);
   --info-on: var(--color-info-on);
-
   --focus-ring-color: var(--color-brand);
+}
+
+/* Burgundy & Champagne */
+:root[data-theme="light"][data-palette="burgundy"] {
+  --color-brand-50: #fff1f3;
+  --color-brand-100: #ffe0e6;
+  --color-brand-200: #ffc2d0;
+  --color-brand-300: #ff91ae;
+  --color-brand-400: #f45f89;
+  --color-brand-500: #9f1239;
+  --color-brand-600: #881337;
+  --color-brand-700: #70112f;
+  --color-brand-800: #5c1029;
+  --color-brand-900: #4e1026;
+  --color-brand: #881337;
+  --color-brand-hover: #70112f;
+  --color-brand-light: #ffe0e6;
+  --color-brand-on: #ffffff;
+  --color-accent: #87652e;
+  --color-accent-hover: #6d5024;
+  --color-accent-light: #f3e7cf;
+  --color-accent-on: #ffffff;
+  --color-surface: #fbf7f6;
+  --color-surface-hover: #f3eae8;
+  --color-surface-elevated: #ffffff;
+  --color-surface-sunken: #f3eae8;
+  --color-ink: #27171c;
+  --color-ink-muted: #625056;
+  --color-ink-subtle: #806c72;
+  --color-ink-on-brand: #ffffff;
+  --shadow-rgb: 39 23 28;
+  --color-border: #e4d7d9;
+  --color-border-strong: #cbb8bd;
+  --color-border-focus: #881337;
+}
+
+/* Deep Navy & Copper */
+:root[data-theme="light"][data-palette="navy"] {
+  --color-brand-50: #eff5fc;
+  --color-brand-100: #dce8f7;
+  --color-brand-200: #bfd5ef;
+  --color-brand-300: #91b8e3;
+  --color-brand-400: #5b91ce;
+  --color-brand-500: #183153;
+  --color-brand-600: #162b49;
+  --color-brand-700: #10243b;
+  --color-brand-800: #101e32;
+  --color-brand-900: #101a2a;
+  --color-brand: #183153;
+  --color-brand-hover: #10243b;
+  --color-brand-light: #dce8f7;
+  --color-brand-on: #ffffff;
+  --color-accent: #925437;
+  --color-accent-hover: #75412a;
+  --color-accent-light: #f2e2d8;
+  --color-accent-on: #ffffff;
+  --color-surface: #f7f5f0;
+  --color-surface-hover: #eeece5;
+  --color-surface-elevated: #ffffff;
+  --color-surface-sunken: #eeece5;
+  --color-ink: #19212d;
+  --color-ink-muted: #505b6a;
+  --color-ink-subtle: #6d7784;
+  --color-ink-on-brand: #ffffff;
+  --shadow-rgb: 25 33 45;
+  --color-border: #d9dfe6;
+  --color-border-strong: #b8c3d0;
+  --color-border-focus: #183153;
+}
+/* Cinematic Slate */
+:root[data-theme="light"][data-palette="cinematic"] {
+  --primary: #343a46;
+  --primary-hover: #222832;
+  --primary-light: #dfe3e9;
+  --primary-on: #ffffff;
+
+  --accent: #536f91;
+  --accent-hover: #3d5675;
+  --accent-light: #e1e9f2;
+  --accent-on: #ffffff;
+
+  --surface: #f0f2f5;
+  --surface-hover: #e4e7ec;
+  --surface-elevated: #fbfcfd;
+  --surface-sunken: #e1e4e9;
+
+  --text-primary: #0b0d12;
+  --text-secondary: #343a46;
+  --text-tertiary: #636b79;
+  --text-on-primary: #ffffff;
+
+  --border: #c6cbd3;
+  --border-strong: #8c93a0;
+  --border-focus: #536f91;
+  --focus-ring-color: #536f91;
+}
+
+/* Graphite / Saffron */
+:root[data-theme="light"][data-palette="saffron"] {
+  --primary: #2b2f35;
+  --primary-hover: #1e2227;
+  --primary-light: #e8ebf0;
+  --primary-on: #ffffff;
+
+  --accent: #9a7300;
+  --accent-hover: #795a00;
+  --accent-light: #fff3c2;
+  --accent-on: #ffffff;
+
+  --surface: #f1f3f6;
+  --surface-hover: #e7eaf0;
+  --surface-elevated: #fcfcfd;
+  --surface-sunken: #e2e6ec;
+
+  --text-primary: #2b2f35;
+  --text-secondary: #535a64;
+  --text-tertiary: #777f8a;
+  --text-on-primary: #ffffff;
+
+  --border: #d6dbe2;
+  --border-strong: #a2a9b3;
+  --border-focus: #9a7300;
+  --focus-ring-color: #9a7300;
+}
+
+/* Silver / Gold — preferred reference palette */
+:root[data-theme="light"][data-palette="silver"] {
+  --primary: #2a2d32;
+  --primary-hover: #1e2125;
+  --primary-light: #f0f1f4;
+  --primary-on: #ffffff;
+
+  --accent: #9b7817;
+  --accent-hover: #7b5e10;
+  --accent-light: #f7efda;
+  --accent-on: #ffffff;
+
+  --surface: #f3f4f6;
+  --surface-hover: #e9ebef;
+  --surface-elevated: #ffffff;
+  --surface-sunken: #e1e4e8;
+
+  --text-primary: #2a2d32;
+  --text-secondary: #555b65;
+  --text-tertiary: #7a818b;
+  --text-on-primary: #ffffff;
+
+  --border: #d8dce2;
+  --border-strong: #b7bdc6;
+  --border-focus: #9b7817;
+  --focus-ring-color: #9b7817;
 }
