@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const apiUrl =
-  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+  process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api/v1';
 
 const backendUrl = apiUrl.replace(/\/api\/v1\/?$/, '');
 const guestCartTokenKey = 'guest-cart-token';
@@ -36,19 +36,30 @@ export class ApiError extends Error {
   }
 }
 
-function getHttpErrorKind(status) {
-  if (status === 400) return 'bad_request';
-  if (status === 401) return 'unauthenticated';
-  if (status === 403) return 'forbidden';
-  if (status === 404) return 'not_found';
-  if (status === 408) return 'timeout';
-  if (status === 409) return 'conflict';
-  if (status === 419) return 'session_expired';
-  if (status === 422) return 'validation';
-  if (status === 429) return 'rate_limit';
-  if (status >= 500) return 'server';
 
-  return 'http';
+function getHttpErrorKind(status) {
+  switch (status) {
+    case 400:
+      return 'bad_request';
+    case 401:
+      return 'unauthenticated';
+    case 403:
+      return 'forbidden';
+    case 404:
+      return 'not_found';
+    case 408:
+      return 'timeout';
+    case 409:
+      return 'conflict';
+    case 419:
+      return 'session_expired';
+    case 422:
+      return 'validation';
+    case 429:
+      return 'rate_limit';
+    default:
+      return status >= 500 ? 'server' : 'http';
+  }
 }
 
 export function normalizeApiError(error) {
