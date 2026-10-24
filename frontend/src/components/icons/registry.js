@@ -95,9 +95,33 @@ import {
   Moon,
 } from 'lucide-react';
 
+function TwoLineMenuIcon(props) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      {...props}
+      direction="ltr"
+    >
+      <path d="M3 7h18" />
+      <path d="M3 17h11" />
+    </svg>
+  );
+}
+
+
 export const icons = {
   // Navigation
   menu: Menu,
+  menuTwoLines: TwoLineMenuIcon,
   close: X,
   chevronLeft: ChevronLeft,
   chevronRight: ChevronRight,
@@ -185,6 +209,7 @@ export const icons = {
   sun: Sun,
   moon: Moon,
 };
+
 
 export function getIcon(name) {
   return icons[name] || null;

@@ -38,7 +38,7 @@ export default function Navbar() {
   };
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-surface/90 backdrop-blur-xl">
+    <header className="sticky top-0 z-40 border-b border-border bg-surface/80 backdrop-blur-xl">
       <div className="shell flex min-h-16 items-center justify-between gap-4 lg:min-h-20">
         <Link
           href={`/${locale}`}
@@ -68,10 +68,10 @@ export default function Navbar() {
             className={iconLinkClass}
             aria-label={tNav('wishlist')}
           >
-            <Icon name="wishlist" size="md" />
+            <Icon name="wishlist" size="md" className="text-current" />
 
             {wishlistItems.length > 0 && (
-              <span className="absolute end-0 top-0 flex size-5 items-center justify-center rounded-full bg-primary text-[0.6rem] font-semibold text-primary-on">
+              <span className="absolute inset-e-0 top-0 flex size-5 items-center justify-center rounded-full bg-primary text-[0.6rem] font-semibold text-primary-on">
                 {wishlistItems.length > 9 ? '9+' : wishlistItems.length}
               </span>
             )}
@@ -82,10 +82,10 @@ export default function Navbar() {
             className={iconLinkClass}
             aria-label={tNav('cart')}
           >
-            <Icon name="cart" size="md" />
+            <Icon name="cart" size="md" className="text-current" />
 
             {itemCount > 0 && (
-              <span className="absolute end-0 top-0 flex size-5 items-center justify-center rounded-full bg-primary text-[0.6rem] font-semibold text-primary-on">
+              <span className="absolute inset-e-0 top-0 flex size-5 items-center justify-center rounded-full bg-primary text-[0.6rem] font-semibold text-primary-on">
                 {itemCount > 9 ? '9+' : itemCount}
               </span>
             )}
@@ -104,7 +104,8 @@ export default function Navbar() {
             aria-controls="mobile-navigation"
             aria-label={mobileMenuOpen ? tNav('closeMenu') : tNav('openMenu')}
           >
-            <Icon name={mobileMenuOpen ? 'close' : 'menu'} size="md" />
+            {/* <Icon name={mobileMenuOpen ? 'close' : 'menu'} size="md" /> */}
+            <Icon name={mobileMenuOpen ? 'close' : 'menuTwoLines'} size="md" />
           </button>
         </div>
       </div>

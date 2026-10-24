@@ -25,6 +25,6 @@
   "openMenu": "Open menu",
   "closeMenu": "Close menu",
   "themeToggle": "Toggle theme",
-  "themeLight": "Switch to light mode",
-  "themeDark": "Switch to dark mode"
+  "themeLight": "Light mode",
+  "themeDark": "Dark mode"
 }

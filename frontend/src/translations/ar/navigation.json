@@ -1,13 +1,13 @@
 {
   "home": "الرئيسية",
   "shop": "المتجر",
-  "newArrivals": "أحدث القطع",
-  "ourCraft": "حرفة الصناعة",
+  "newArrivals": "أحدث المنتجات",
+  "ourCraft": "حرفية الصنع",
   "products": "المنتجات",
-  "categories": "الفئات",
+  "categories": "التصنيفات",
   "collections": "المجموعات",
   "cart": "السلة",
-  "checkout": "إتمام الطلب",
+  "checkout": "الدفع",
   "account": "الحساب",
   "login": "تسجيل الدخول",
   "register": "إنشاء حساب",
@@ -24,7 +24,7 @@
   "mainNavigation": "التنقل الرئيسي",
   "openMenu": "فتح القائمة",
   "closeMenu": "إغلاق القائمة",
-  "themeToggle": "تبديل المظهر",
-  "themeLight": "التبديل إلى الوضع الفاتح",
-  "themeDark": "التبديل إلى الوضع الداكن"
+  "themeToggle": "تغيير المظهر",
+  "themeLight": "الوضع الفاتح",
+  "themeDark": "الوضع الداكن"
 }
