@@ -1,77 +1,258 @@
 'use client';
 
+import { useRef } from 'react';
 import { useTranslations } from 'next-intl';
-import { Icon } from '@/components/icons';
+import { motion, useScroll, useTransform } from 'motion/react';
+import Image from 'next/image';
+import Link from 'next/link';
 import { storeConfig } from '@/config/store';
+
+const ease = [0.22, 1, 0.36, 1];
+
+// All Hero colors are fixed and independent of the site theme.
+// Change the values here to customize the Hero colors.
+const HERO_COLORS = {
+  background: '#111110',
+
+  brandName: '#f6f3ee',
+  eyebrow: '#d8c09a',
+  eyebrowLine: '#d8c09a',
+  headline: '#f6f3ee',
+  subtitle: '#e2ddd3',
+  note: '#a79f91',
+  divider: 'rgba(246, 243, 238, 0.2)',
+
+  primaryButtonBg: '#f1f3f6',
+  primaryButtonText: '#191815',
+  primaryButtonHoverBg: '#ffffff',
+  primaryButtonHoverText: '#191815',
+  primaryButtonFocus: '#d8c09a',
+
+  secondaryButtonText: '#e2ddd3',
+  secondaryButtonHoverText: '#ffffff',
+
+  imageOverlay: 'rgba(17, 17, 16, 0.35)',
+  gradientRight:
+    'linear-gradient(to right, #111110 0%, rgba(17,17,16,0.75) 55%, rgba(17,17,16,0.15) 100%)',
+  gradientLeft:
+    'linear-gradient(to left, rgba(17,17,16,0.35), transparent 45%, transparent)',
+  gradientBottom:
+    'linear-gradient(to top, #111110 0%, rgba(17,17,16,0.25) 45%, rgba(17,17,16,0.15) 100%)',
+  atmosphericGlow:
+    'radial-gradient(ellipse at 72% 40%, rgba(184,160,119,0.15), transparent 55%)',
+};
+
+const container = {
+  hidden: {},
+  show: {
+    transition: {
+      staggerChildren: 0.22,
+      delayChildren: 0.3,
+    },
+  },
+};
+
+const item = {
+  hidden: { opacity: 0, y: 40 },
+  show: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 1.3,
+      ease,
+    },
+  },
+};
 
 export function HomeHero() {
   const t = useTranslations('home');
+  const heroRef = useRef(null);
+
+  const { scrollYProgress } = useScroll({
+    target: heroRef,
+    offset: ['start start', 'end start'],
+  });
+
+  const contentY = useTransform(scrollYProgress, [0, 1], [0, -100]);
+  const contentOpacity = useTransform(scrollYProgress, [0, 1], [1, 0]);
+  const imageY = useTransform(scrollYProgress, [0, 1], [0, -70]);
+  const imageScale = useTransform(scrollYProgress, [0, 1], [1.04, 1.16]);
 
   return (
-    <section className="relative isolate overflow-hidden bg-[#111110] text-[#f6f3ee]">
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0">
-        <div className="absolute -end-32 -top-40 size-[34rem] rounded-full bg-white/[0.06] blur-3xl" />
-        <div className="absolute -start-40 bottom-0 size-[28rem] rounded-full bg-[#a5824a]/10 blur-3xl" />
-      </div>
+    <section
+      ref={heroRef}
+      style={{ backgroundColor: HERO_COLORS.background }}
+      className="relative isolate overflow-hidden"
+    >
+      {/* Full-bleed background image */}
+      <motion.div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 z-0"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1.8, ease }}
+        style={{ y: imageY, scale: imageScale }}
+      >
+        <Image
+          src="/images/hero-silver.webp"
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover object-[62%_center] sm:object-[68%_center] lg:object-[72%_center]"
+        />
+      </motion.div>
 
-      <div className="shell relative grid items-center gap-12 py-16 sm:py-20 lg:min-h-[calc(100svh-5rem)] lg:grid-cols-[1.02fr_0.98fr] lg:gap-10 lg:py-24">
-        <div className="max-w-xl">
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#c9a86c]">
+      {/* Fixed image overlays */}
+      <div
+        aria-hidden="true"
+        style={{ backgroundColor: HERO_COLORS.imageOverlay }}
+        className="pointer-events-none absolute inset-0 z-[1]"
+      />
+
+      <div
+        aria-hidden="true"
+        style={{ background: HERO_COLORS.gradientRight }}
+        className="pointer-events-none absolute inset-0 z-[1]"
+      />
+
+      <div
+        aria-hidden="true"
+        style={{ background: HERO_COLORS.gradientLeft }}
+        className="pointer-events-none absolute inset-0 z-[1]"
+      />
+
+      <div
+        aria-hidden="true"
+        style={{ background: HERO_COLORS.gradientBottom }}
+        className="pointer-events-none absolute inset-0 z-[1]"
+      />
+
+      {/* Fixed atmospheric gold lighting */}
+      <div
+        aria-hidden="true"
+        style={{ background: HERO_COLORS.atmosphericGlow }}
+        className="pointer-events-none absolute inset-0 z-[1]"
+      />
+
+      <div className="shell relative z-10 flex min-h-0 flex-col justify-between py-7 sm:py-9 lg:min-h-[min(850px,calc(100svh-5rem))] lg:py-10">
+        {/* Brand name */}
+        <motion.div
+          initial={{ opacity: 0, y: -16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1.2, delay: 0.25, ease }}
+          className="flex items-center justify-between"
+        >
+          <span
+            style={{ color: HERO_COLORS.brandName }}
+            className="text-xs font-semibold uppercase tracking-[0.25em]"
+          >
+            {storeConfig.name}
+          </span>
+        </motion.div>
+
+        {/* Main Hero content */}
+        <motion.div
+          variants={container}
+          initial="hidden"
+          animate="show"
+          style={{
+            y: contentY,
+            opacity: contentOpacity,
+          }}
+          className="relative max-w-5xl pb-9 pt-16 sm:pb-14 sm:pt-24 lg:max-w-[68%] lg:pb-20 lg:pt-16"
+        >
+          {/* Eyebrow */}
+          <motion.p
+            variants={item}
+            style={{ color: HERO_COLORS.eyebrow }}
+            className="mb-6 flex items-center gap-3 text-[0.65rem] font-semibold uppercase tracking-[0.24em] sm:mb-9"
+          >
+            <span
+              style={{ backgroundColor: HERO_COLORS.eyebrowLine }}
+              className="h-px w-9"
+            />
             {t('eyebrow')}
-          </p>
+          </motion.p>
 
-          <h1 className="mt-6 text-balance text-[clamp(2.75rem,6.4vw,5rem)] font-normal leading-[1.02] tracking-[-0.035em] text-[#f7f4ef]">
+          {/* Headline */}
+          <motion.h1
+            variants={item}
+            style={{ color: HERO_COLORS.headline }}
+            className="max-w-[11ch] text-balance text-[clamp(3.5rem,10.5vw,9.5rem)] font-medium leading-[0.88] tracking-[-0.065em]"
+          >
             {t('heroTitle')}
-          </h1>
+          </motion.h1>
 
-          <p className="mt-6 max-w-md text-base leading-7 text-[#cfcac1] sm:text-lg sm:leading-8">
-            {t('heroDescription')}
-          </p>
+          {/* Subtitle */}
+          <motion.p
+            variants={item}
+            style={{ color: HERO_COLORS.subtitle }}
+            className="mt-6 max-w-md text-sm leading-7 sm:mt-8 sm:text-base sm:leading-8"
+          >
+            {t('heroSubtitle')}
+          </motion.p>
 
-          <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
-            <a
-              href="#new-arrivals"
-              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#f5f2ec] px-7 text-sm font-semibold text-[#171614] transition-colors hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#c9a86c]"
+          {/* Primary and secondary CTAs */}
+          <motion.div
+            variants={item}
+            className="mt-8 flex flex-wrap items-center gap-5 sm:mt-10"
+          >
+            <Link
+              href="/products"
+              style={{
+                backgroundColor: HERO_COLORS.primaryButtonBg,
+                color: HERO_COLORS.primaryButtonText,
+              }}
+              onMouseEnter={(event) => {
+                event.currentTarget.style.backgroundColor =
+                  HERO_COLORS.primaryButtonHoverBg;
+                event.currentTarget.style.color =
+                  HERO_COLORS.primaryButtonHoverText;
+              }}
+              onMouseLeave={(event) => {
+                event.currentTarget.style.backgroundColor =
+                  HERO_COLORS.primaryButtonBg;
+                event.currentTarget.style.color =
+                  HERO_COLORS.primaryButtonText;
+              }}
+              className="inline-flex min-h-14 items-center justify-center rounded-lg px-7 py-4 text-sm font-semibold transition-colors duration-300 focus-visible:outline-2 focus-visible:outline-offset-4 sm:min-h-16 sm:px-9"
             >
               {t('heroPrimary')}
-              <Icon name="arrowRight" size="sm" className="rtl:rotate-180" />
-            </a>
+            </Link>
 
             <a
-              href="#craft"
-              className="inline-flex min-h-12 items-center justify-center rounded-full border border-white/25 px-7 text-sm font-semibold text-[#f5f2ec] transition-colors hover:border-white/60 hover:bg-white/5 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#c9a86c]"
+              href="#new-arrivals"
+              style={{ color: HERO_COLORS.secondaryButtonText }}
+              onMouseEnter={(event) => {
+                event.currentTarget.style.color =
+                  HERO_COLORS.secondaryButtonHoverText;
+              }}
+              onMouseLeave={(event) => {
+                event.currentTarget.style.color =
+                  HERO_COLORS.secondaryButtonText;
+              }}
+              className="inline-flex min-h-12 items-center px-3 py-3 text-sm font-medium transition-colors duration-300"
             >
               {t('heroSecondary')}
             </a>
-          </div>
+          </motion.div>
+        </motion.div>
 
-          <p className="mt-10 flex items-center gap-3 text-[0.65rem] uppercase tracking-[0.24em] text-[#8f8a81]">
-            <span aria-hidden="true" className="h-px w-8 bg-[#8f8a81]" />
-            {t('heroNote')}
-          </p>
-        </div>
-
-        <div className="relative mx-auto w-full max-w-[30rem] lg:max-w-none">
-          <div className="relative overflow-hidden rounded-[1.75rem] border border-white/10 bg-[#171716] shadow-2xl">
-            <img
-              src="/images/hero-silver.svg"
-              alt={t('heroImageAlt')}
-              width="1000"
-              height="1200"
-              className="aspect-[4/5] h-full w-full object-cover"
-            />
-
-            <div
-              aria-hidden="true"
-              className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent"
-            />
-
-            <div className="absolute inset-x-5 bottom-5 flex items-center justify-between text-[0.65rem] uppercase tracking-[0.24em] text-white/70">
-              <span>{storeConfig.name}</span>
-              <span>01</span>
-            </div>
-          </div>
-        </div>
+        {/* Bottom note */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1.2, delay: 2.0, ease }}
+          style={{
+            color: HERO_COLORS.note,
+            borderColor: HERO_COLORS.divider,
+          }}
+          className="relative flex items-center justify-between gap-4 border-t pt-4 text-[0.6rem] uppercase tracking-[0.16em] sm:tracking-[0.2em]"
+        >
+          <span>{t('heroNote')}</span>
+          <span className="hidden sm:inline">01 — 03</span>
+        </motion.div>
       </div>
     </section>
   );
