@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/Button';
 import { Breadcrumbs } from '@/components/ui/navigation/Breadcrumbs';
+import { SectionHeading } from '@/components/ui/SectionHeading';
 import { Pagination } from '@/components/ui/navigation/Pagination';
 import { EmptyState } from '@/components/ui/data-display/EmptyState';
 import { Icon } from '@/components/icons';
@@ -66,15 +67,15 @@ export function CollectionsPage() {
     <div className="shell py-10 sm:py-14">
       <Breadcrumbs items={breadcrumbItems} className="mb-8 text-sm" />
 
-      <header className="max-w-2xl">
-        <p className="eyebrow">{t('collectionsPage.eyebrow')}</p>
-        <h1 className="mt-4 text-4xl font-normal tracking-[-0.035em] text-text-primary sm:text-5xl">
-          {t('collectionsPage.title')}
-        </h1>
-        <p className="mt-4 text-sm leading-7 text-text-secondary sm:text-base">
-          {t('collectionsPage.description')}
-        </p>
-      </header>
+      <SectionHeading
+        as="h1"
+        eyebrow={t('collectionsPage.eyebrow')}
+        title={t('collectionsPage.title')}
+        description={t('collectionsPage.description')}
+        className="max-w-2xl"
+        titleClassName="text-4xl font-normal tracking-[-0.035em] text-text-primary sm:text-5xl"
+        descriptionClassName="mt-4 text-sm leading-7 text-text-secondary sm:text-base"
+      />
 
       <div className="mt-10">
         {status === 'loading' && (

@@ -18,8 +18,7 @@ export default function Footer() {
   const exploreLinks = [
     { href: `/${locale}`, label: tNav('home') },
     { href: `/${locale}#new-arrivals`, label: tFooter('newArrivals') },
-    { href: `/${locale}#craft`, label: tFooter('ourCraft') },
-    { href: `/${locale}/products`, label: tNav('shop') },
+    { href: `/${locale}/products`, label: tNav('products') },
     { href: `/${locale}/categories`, label: tNav('categories') },
     { href: `/${locale}/collections`, label: tNav('collections') },
   ];

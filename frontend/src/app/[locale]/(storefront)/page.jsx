@@ -7,6 +7,7 @@ import { storeConfig } from '@/config/store';
 import { HomeHero } from '@/components/storefront/home/HomeHero';
 import { NewArrivals } from '@/components/storefront/home/NewArrivals';
 import { CraftStory } from '@/components/storefront/home/CraftStory';
+import { SectionHeading } from '@/components/ui/SectionHeading';
 
 export default function Home() {
   const t = useTranslations('home');
@@ -59,19 +60,17 @@ export default function Home() {
 
       <NewArrivals />
 
-      <CraftStory />
 
       <section className="bg-surface">
         <div className="shell flex flex-col items-center py-20 text-center sm:py-24">
-          <p className="eyebrow">{storeConfig.name}</p>
-
-          <h2 className="mt-4 max-w-2xl text-balance text-3xl font-normal tracking-[-0.03em] text-text-primary sm:text-4xl">
-            {t('closing.title')}
-          </h2>
-
-          <p className="mt-4 max-w-md text-sm leading-6 text-text-secondary">
-            {t('closing.text')}
-          </p>
+          <SectionHeading
+            eyebrow={storeConfig.name}
+            title={t('closing.title')}
+            description={t('closing.text')}
+            className="w-full max-w-2xl"
+            titleClassName="text-balance text-3xl font-normal tracking-[-0.03em] text-text-primary sm:text-4xl"
+            descriptionClassName="mx-auto mt-4 max-w-md text-sm leading-6 text-text-secondary"
+          />
 
           <div className="mt-9 flex flex-col items-center gap-4 sm:flex-row">
             <a

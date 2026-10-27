@@ -59,13 +59,14 @@ export default function Navbar() {
         <DesktopNavigation />
 
         <div className="flex shrink-0 items-center gap-0.5 sm:gap-1">
-          <ThemeToggle />
+          <ThemeToggle className='hidden md:block' />
 
           <LanguageSwitcher />
 
           <Link
             href={`/${locale}/wishlist`}
-            className={iconLinkClass}
+            // className={iconLinkClass}
+            className={`${iconLinkClass} hidden md:flex`}
             aria-label={tNav('wishlist')}
           >
             <Icon name="wishlist" size="md" className="text-current" />
@@ -90,11 +91,12 @@ export default function Navbar() {
               </span>
             )}
           </Link>
-
-          <UserMenu
-            user={isAuthenticated ? user : null}
-            onLogout={handleLogout}
-          />
+          <div className='hidden md:block'>
+            <UserMenu
+              user={isAuthenticated ? user : null}
+              onLogout={handleLogout}
+            />
+          </div>
 
           <button
             type="button"

@@ -14,6 +14,7 @@ const navigationItems = [
   { key: 'home', path: '/' },
   { key: 'products', path: '/products' },
   { key: 'collections', path: '/collections' },
+  { key: 'wishlist', path: '/wishlist' },
 ];
 
 const subscribe = () => () => {};
@@ -222,10 +223,11 @@ export default function MobileNavigation({ isOpen, onClose }) {
         </div>
 
         <div className="border-t border-border p-4">
-          <ThemeToggle showLabel className="mb-2" />
+          <ThemeToggle showLabel  />
 
           {!isAuthenticated && (
-            <div className="flex flex-col gap-2 pt-2">
+            // <div className="flex flex-col gap-2 pt-2">
+            <div className="flex flex-col pt-2">
               <Link
                 href={`/${locale}/login`}
                 onClick={closeMenu}

@@ -22,6 +22,7 @@ export { UnsavedChangesDialog } from './overlays/UnsavedChangesDialog';
 export { Alert, ToastProvider, useToast } from './Alert';
 export { Toast } from './feedback/Toast';
 export { Progress } from './feedback/Progress';
+export { SectionHeading } from './SectionHeading';
 export {
   Badge,
   StatusBadge,

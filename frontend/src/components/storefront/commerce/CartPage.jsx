@@ -6,6 +6,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
 import { Breadcrumbs } from '@/components/ui/navigation/Breadcrumbs';
+import { SectionHeading } from '@/components/ui/SectionHeading';
 import { EmptyState } from '@/components/ui/data-display/EmptyState';
 import { PageSkeleton } from '@/components/ui/skeletons/PageSkeleton';
 import { Icon } from '@/components/icons';
@@ -99,12 +100,13 @@ export function CartPage() {
     <div className="shell py-10 sm:py-14">
       <Breadcrumbs items={breadcrumbItems} className="mb-8 text-sm" />
 
-      <header className="max-w-2xl">
-        <p className="eyebrow">{tNav('cart')}</p>
-        <h1 className="mt-4 text-4xl font-normal tracking-[-0.035em] text-text-primary sm:text-5xl">
-          {t('title')}
-        </h1>
-      </header>
+      <SectionHeading
+        as="h1"
+        eyebrow={tNav('cart')}
+        title={t('title')}
+        className="max-w-2xl"
+        titleClassName="text-4xl font-normal tracking-[-0.035em] text-text-primary sm:text-5xl"
+      />
 
       {actionError && (
         <Alert

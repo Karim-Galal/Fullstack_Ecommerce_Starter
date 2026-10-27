@@ -7,6 +7,7 @@ import { useParams } from 'next/navigation';
 import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
 import { Breadcrumbs } from '@/components/ui/navigation/Breadcrumbs';
+import { SectionHeading } from '@/components/ui/SectionHeading';
 import { EmptyState } from '@/components/ui/data-display/EmptyState';
 import { ProductCard } from '@/components/storefront/ProductCard';
 import { ProductGridSkeleton } from '@/components/ui/skeletons/ProductGridSkeleton';
@@ -127,15 +128,15 @@ export function CollectionDetail() {
       {status === 'ready' && collection && (
         <>
           <header className="max-w-2xl">
-            <p className="eyebrow">{t('collectionsPage.eyebrow')}</p>
-            <h1 className="mt-4 text-4xl font-normal tracking-[-0.035em] text-text-primary sm:text-5xl">
-              {name}
-            </h1>
-            {description && (
-              <p className="mt-4 text-sm leading-7 text-text-secondary sm:text-base">
-                {description}
-              </p>
-            )}
+            <SectionHeading
+              as="h1"
+              eyebrow={t('collectionsPage.eyebrow')}
+              title={name}
+              description={description}
+              className="max-w-2xl"
+              titleClassName="text-4xl font-normal tracking-[-0.035em] text-text-primary sm:text-5xl"
+              descriptionClassName="mt-4 text-sm leading-7 text-text-secondary sm:text-base"
+            />
             <p className="mt-4 text-xs uppercase tracking-[0.22em] text-text-tertiary">
               {t('collectionsPage.pieces', { count: products.length })}
             </p>

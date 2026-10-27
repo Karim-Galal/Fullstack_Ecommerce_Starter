@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { Icon } from '@/components/icons';
+import { SectionHeading } from '@/components/ui/SectionHeading';
 import { storeConfig } from '@/config/store';
 
 export function CraftStory() {
@@ -14,11 +15,11 @@ export function CraftStory() {
     >
       <div className="shell grid items-center gap-12 py-20 lg:grid-cols-2 lg:gap-16 lg:py-28">
         <div className="lg:order-2">
-          <p className="eyebrow">{t('craft.eyebrow')}</p>
-
-          <h2 className="mt-4 max-w-md text-3xl font-normal tracking-[-0.03em] text-text-primary sm:text-4xl">
-            {t('craft.title')}
-          </h2>
+          <SectionHeading
+            eyebrow={t('craft.eyebrow')}
+            title={t('craft.title')}
+            className="max-w-md"
+          />
 
           <div className="mt-6 max-w-md space-y-4 text-sm leading-7 text-text-secondary sm:text-base">
             <p>{t('craft.textOne')}</p>

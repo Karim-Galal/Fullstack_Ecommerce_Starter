@@ -18,11 +18,15 @@ const supportedErrorKinds = new Set([
   'unknown',
 ]);
 
-export function getApiErrorMessage(error, t) {
+export function getApiErrorMessage(error, t, fallbackMessage) {
   const normalizedError = normalizeApiError(error);
   const kind = supportedErrorKinds.has(normalizedError.kind)
     ? normalizedError.kind
     : 'unknown';
+
+  if (kind === 'unknown' && fallbackMessage) {
+    return fallbackMessage;
+  }
 
   return t(`apiErrors.${kind}`);
 }

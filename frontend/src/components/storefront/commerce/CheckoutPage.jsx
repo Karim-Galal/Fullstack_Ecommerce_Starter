@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Input } from '@/components/ui/Input';
 import { Breadcrumbs } from '@/components/ui/navigation/Breadcrumbs';
+import { SectionHeading } from '@/components/ui/SectionHeading';
 import { EmptyState } from '@/components/ui/data-display/EmptyState';
 import { PageSkeleton } from '@/components/ui/skeletons/PageSkeleton';
 import { Icon } from '@/components/icons';
@@ -247,15 +248,15 @@ export function CheckoutPage() {
     <div className="shell py-10 sm:py-14">
       <Breadcrumbs items={breadcrumbItems} className="mb-8 text-sm" />
 
-      <header className="max-w-2xl">
-        <p className="eyebrow">{t('eyebrow')}</p>
-        <h1 className="mt-4 text-4xl font-normal tracking-[-0.035em] text-text-primary sm:text-5xl">
-          {t('title')}
-        </h1>
-        <p className="mt-4 text-sm leading-7 text-text-secondary sm:text-base">
-          {t('description')}
-        </p>
-      </header>
+      <SectionHeading
+        as="h1"
+        eyebrow={t('eyebrow')}
+        title={t('title')}
+        description={t('description')}
+        className="max-w-2xl"
+        titleClassName="text-4xl font-normal tracking-[-0.035em] text-text-primary sm:text-5xl"
+        descriptionClassName="mt-4 text-sm leading-7 text-text-secondary sm:text-base"
+      />
 
       {error && (
         <Alert
