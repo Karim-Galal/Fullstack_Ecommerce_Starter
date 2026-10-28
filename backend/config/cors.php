@@ -26,7 +26,7 @@ return [
 
     'allowed_headers' => ['*'],
 
-    'exposed_headers' => [],
+    'exposed_headers' => ['X-Guest-Cart'],
 
     'max_age' => 0,
 

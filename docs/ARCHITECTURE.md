@@ -215,12 +215,12 @@ POST /api/v1/checkout { shipping_address, gateway, payment_method, coupon_code? 
 POST /api/v1/payments/{gateway}/webhook
   → PaymentWebhookController@handle
   → Verify signature (HMAC-SHA256 for Stripe, HMAC-SHA512 for Paymob)
-  → Idempotency check via payment_webhook_events table
+  → Atomically record the event, apply the state change, and mark it processed
   → Extract transaction_reference from payload
   → PaymentStateService::apply(payment, status, gateway_ref, metadata)
     - Validates state transition
     - Updates payment status
-    - If paid: confirms order, queues SendOrderConfirmation job
+    - If paid: confirms order, records durable invoice-issuance work, queues SendOrderConfirmation job
     - If expired: restores stock
   → Returns { ok: true }
 ```
@@ -262,6 +262,7 @@ expired → (terminal)
 - Uses row locking (`lockForUpdate()`) for concurrency safety
 - Validates payment amount matches order total
 - Triggers order confirmation on successful payment
+- Atomically records an `invoice_issuances` work item; invoice creation happens outside the payment transaction
 - Restores stock on payment expiry
 
 ### PaymentInitiationService
@@ -279,9 +280,16 @@ expired → (terminal)
 - Extensible for additional gateways
 
 ### PaymentWebhookService
-- Handles webhook idempotency via `payment_webhook_events` table
+- Records event idempotency, applies the state transition, and marks the event processed in one transaction
 - Delegates to gateway-specific handlers
 - Applies state transitions via PaymentStateService
+- Allows failed event processing to be retried; processed duplicates are no-ops
+
+### Invoice Issuance
+- A paid transition writes one `invoice_issuances` row per order in the same transaction as payment/order state
+- `IssueOrderInvoice` is dispatched after commit and also by the scheduled `invoices:dispatch-pending` sweep
+- The job and `InvoiceService` are idempotent; a crash after invoice creation is repaired on retry
+- Failures are recorded on the work item with bounded retries and exponential backoff, without rolling back the payment
 
 ### CartMergeService
 - Merges guest cart into user cart on login/register
@@ -335,6 +343,7 @@ The following entities use Laravel's Soft Deletes for audit trail and historical
 - Historical records (Orders, OrderItems, Invoices, Payments, Reviews) maintain access to soft-deleted related records via `withTrashed()` on specific relationships
 - The `destroy()` method in controllers performs soft delete via `$model->delete()`
 - No hard delete or restore endpoints are exposed in the API
+- Invoice `order_id` uses `restrictOnDelete`; an order with an invoice cannot be hard-deleted
 
 ### Relationships with `withTrashed()`
 - `OrderItem::product()` - Access product for historical order display

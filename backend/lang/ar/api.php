@@ -67,6 +67,7 @@ return [
     'wishlist_already_exists' => 'هذا المنتج موجود بالفعل في قائمة رغباتك.',
     'wishlist_item_not_found' => 'هذا المنتج غير موجود في قائمة رغباتك.',
 
+    'invoice_order_not_confirmed' => 'لا يمكن إصدار فاتورة إلا لطلب مؤكد.',
     'payment_must_be_pending' => 'لا يمكن بدء عملية الدفع إلا إذا كانت حالتها معلقة.',
     'payment_expired' => 'انتهت صلاحية عملية الدفع هذه ولا يمكن البدء بها.',
     'payment_must_be_paid_for_refund' => 'لا يمكن استرداد المبلغ إلا لعمليات الدفع المكتملة.',

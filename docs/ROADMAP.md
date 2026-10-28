@@ -115,6 +115,11 @@
 - [ ] Email notification templates (order confirmation, shipping updates, etc.)
 
 ## Phase 9: Invoices
+- [x] Backend invoice API
+  - [x] Automatic, idempotent issuance when a payment is paid
+  - [x] Durable invoice-issuance outbox with scheduled recovery
+  - [x] Customer and admin list/show endpoints with `invoices.view` permission
+  - [x] Financial-history protection against hard-deleting invoiced orders
 - [ ] Invoice admin UI
   - List/generate invoices
   - PDF generation
@@ -128,7 +133,7 @@
 ## Phase 11: Polish & Production
 - [x] Consolidate database migrations (one create migration per table)
 - [x] Update factories and seeders with realistic development data
-- [x] Run and review the full backend test suite (233 tests, 881 assertions)
+- [x] Run and review the full backend test suite (251 tests, 981 assertions)
 - [ ] Resolve any confirmed failing tests
 - [ ] Comprehensive test coverage
 - [ ] CI/CD pipeline

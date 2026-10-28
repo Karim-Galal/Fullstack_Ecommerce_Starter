@@ -2,12 +2,15 @@
 
 namespace App\Services\Payments;
 
+use App\Jobs\IssueOrderInvoice;
 use App\Jobs\SendOrderConfirmation;
+use App\Models\InvoiceIssuance;
 use App\Models\Payment;
 use App\Notifications\PaymentConfirmedNotification;
-use App\Notifications\PaymentFailedNotification;
 use App\Notifications\PaymentExpiredNotification;
+use App\Notifications\PaymentFailedNotification;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 
 class PaymentStateService
@@ -43,6 +46,28 @@ class PaymentStateService
 
             if ($status === 'paid') {
                 $payment->order->update(['status' => 'confirmed']);
+
+                $issuance = InvoiceIssuance::firstOrCreate(
+                    ['order_id' => $payment->order_id],
+                    [
+                        'status' => InvoiceIssuance::STATUS_PENDING,
+                        'available_at' => now(),
+                    ]
+                );
+
+                if ($issuance->status !== InvoiceIssuance::STATUS_ISSUED) {
+                    DB::afterCommit(function () use ($issuance) {
+                        try {
+                            IssueOrderInvoice::dispatch($issuance->id);
+                        } catch (\Throwable $exception) {
+                            Log::error('Failed to dispatch invoice issuance', [
+                                'issuance_id' => $issuance->id,
+                                'order_id' => $issuance->order_id,
+                                'error' => $exception->getMessage(),
+                            ]);
+                        }
+                    });
+                }
 
                 SendOrderConfirmation::dispatch($payment->order_id)->afterCommit();
 

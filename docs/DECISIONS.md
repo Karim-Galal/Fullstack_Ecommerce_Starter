@@ -327,6 +327,7 @@ The application initially used hard deletes for all entities. However, several e
 - Historical records (Orders, OrderItems, Invoices, Payments, Reviews) maintain access to soft-deleted related records via `withTrashed()` on specific relationships
 - The `destroy()` method in controllers performs soft delete via `$model->delete()`
 - No hard delete or restore endpoints are exposed in the API
+- Invoice `order_id` uses `restrictOnDelete`; an order with an invoice cannot be hard-deleted
 
 ### Relationships with `withTrashed()`
 - `OrderItem::product()` - Access product for historical order display
@@ -462,3 +463,26 @@ Do not rebuild backend functionality or modify unrelated backend features as par
 ### Status
 
 Accepted as the guiding direction for frontend development. Individual implementation items must be verified as they are completed.
+
+---
+
+## ADR-013: Transactional Outbox for Invoice Issuance (2026-10-25)
+
+### Context
+Invoice creation originally ran inside `PaymentStateService`'s payment transaction. An invoice failure rolled back the paid payment and confirmed order, even though the gateway had already accepted the payment.
+
+### Decision
+Use a transactional outbox. A paid transition writes one `invoice_issuances` row in the same transaction as the payment and order updates. Invoice creation runs in `IssueOrderInvoice` outside that transaction.
+
+### Implementation
+- `InvoiceIssuance` has a unique `order_id` and tracks status, attempts, availability, errors, and issuance time.
+- The job is dispatched after commit for prompt processing and is also recovered by the scheduled `invoices:dispatch-pending` command.
+- `InvoiceService` remains idempotent. A retry after invoice creation but before marking the work item issued returns the existing invoice and completes the work item.
+- Failures are recorded with bounded retries and exponential backoff without rolling back payment state.
+- Webhook event recording, state application, and the processed marker are committed atomically; failed processing remains retryable and processed duplicates are no-ops.
+
+### Consequences
+- A successful payment is durable even when invoice issuance fails.
+- Operational monitoring can use `invoice_issuances` and `failed_jobs` to identify unresolved work.
+- Queue dispatch is not the source of durability; the outbox row is.
+- `schedule:run` must be running for automatic recovery of missed dispatches.

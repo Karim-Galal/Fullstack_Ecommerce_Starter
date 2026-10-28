@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\AddressController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CartController;
 use App\Http\Controllers\Api\CategoryController;
@@ -8,18 +9,18 @@ use App\Http\Controllers\Api\CollectionController;
 use App\Http\Controllers\Api\CouponController;
 use App\Http\Controllers\Api\GoogleAuthController;
 use App\Http\Controllers\Api\InvitationController;
+use App\Http\Controllers\Api\InvoiceController;
 use App\Http\Controllers\Api\NotificationController;
+use App\Http\Controllers\Api\OfferController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\PaymentWebhookController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\ProductImageController;
-use App\Http\Controllers\Api\OfferController;
 use App\Http\Controllers\Api\ReviewController;
-use App\Http\Controllers\Api\WishlistController;
-use App\Http\Controllers\Api\AddressController;
 use App\Http\Controllers\Api\ShippingMethodController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\WishlistController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -99,7 +100,6 @@ Route::prefix('v1')->group(function () {
     Route::patch('cart/items/{item}', [CartController::class, 'update']);
     Route::delete('cart/items/{item}', [CartController::class, 'destroy']);
 
-
     /*
     |--------------------------------------------------------------------------
     | Public Review Routes
@@ -177,6 +177,15 @@ Route::prefix('v1')->group(function () {
 
         /*
         |--------------------------------------------------------------------------
+        | Invoice Routes
+        |--------------------------------------------------------------------------
+        */
+
+        Route::get('invoices', [InvoiceController::class, 'index']);
+        Route::get('invoices/{invoice}', [InvoiceController::class, 'show']);
+
+        /*
+        |--------------------------------------------------------------------------
         | Reviews Routes
         |--------------------------------------------------------------------------
         */
@@ -185,7 +194,6 @@ Route::prefix('v1')->group(function () {
         Route::get('/reviews/{review}', [ReviewController::class, 'show']);
         Route::patch('/reviews/{review}', [ReviewController::class, 'update']);
         Route::delete('/reviews/{review}', [ReviewController::class, 'destroy']);
-
 
         /*
         |--------------------------------------------------------------------------
@@ -206,8 +214,6 @@ Route::prefix('v1')->group(function () {
             'addresses/{address}/default',
             [AddressController::class, 'setDefault']
         );
-
-
 
         /*
         |--------------------------------------------------------------------------
@@ -232,7 +238,7 @@ Route::prefix('v1')->group(function () {
             Route::post('products', [ProductController::class, 'store']);
             Route::patch('products/{product}', [ProductController::class, 'update']);
             Route::delete('products/{product}', [ProductController::class, 'destroy']);
-            //Admin Product Image Routes
+            // Admin Product Image Routes
             Route::post('products/{product}/images', [ProductImageController::class, 'store']);
             Route::post('products/{product}/images/{image}/replace', [ProductImageController::class, 'replace']);
             Route::patch('products/{product}/images/{image}', [ProductImageController::class, 'update']);
@@ -356,7 +362,6 @@ Route::prefix('v1')->group(function () {
                 Route::delete('{shippingMethod}', 'destroy')->name('shipping-methods.destroy');
             });
 
-
             /*
             |--------------------------------------------------------------------------
             | Admin Payment Routes
@@ -367,6 +372,16 @@ Route::prefix('v1')->group(function () {
                 'payments/{payment}/refund',
                 [PaymentController::class, 'refund']
             );
+
+            /*
+            |--------------------------------------------------------------------------
+            | Admin Invoice Routes
+            |--------------------------------------------------------------------------
+            */
+
+            Route::get('invoices', [InvoiceController::class, 'adminIndex']);
+            Route::get('invoices/{invoice}', [InvoiceController::class, 'adminShow'])
+                ->withTrashed();
 
             /*
             |--------------------------------------------------------------------------

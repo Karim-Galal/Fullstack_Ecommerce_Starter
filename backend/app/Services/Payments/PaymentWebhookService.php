@@ -4,7 +4,6 @@ namespace App\Services\Payments;
 
 use App\Services\Payments\Gateways\PaymobWebhookHandler;
 use App\Services\Payments\Gateways\StripeWebhookHandler;
-use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -31,26 +30,36 @@ class PaymentWebhookService
             ];
         }
 
-        try {
-            DB::table('payment_webhook_events')->insert([
+        return DB::transaction(function () use ($event, $gateway, $request) {
+            $attributes = [
                 'gateway' => $gateway,
                 'event_id' => $event['event_id'],
                 'payload_hash' => hash('sha256', $request->getContent()),
                 'created_at' => now(),
                 'updated_at' => now(),
-            ]);
-        } catch (QueryException $e) {
-            if (in_array((string) $e->getCode(), ['23000', '23505'], true)) {
+            ];
+
+            $inserted = DB::table('payment_webhook_events')->insertOrIgnore($attributes);
+
+            $existing = DB::table('payment_webhook_events')
+                ->where('gateway', $gateway)
+                ->where('event_id', $event['event_id'])
+                ->lockForUpdate()
+                ->first();
+
+            if (! $existing) {
+                throw new \RuntimeException(
+                    'Failed to persist payment webhook event.'
+                );
+            }
+
+            if (! $inserted && $existing->processed_at !== null) {
                 return [
                     'ok' => true,
                     'duplicate' => true,
                 ];
             }
 
-            throw $e;
-        }
-
-        DB::transaction(function () use ($event, $gateway) {
             $this->state->apply(
                 $event['payment'],
                 $event['status'],
@@ -61,9 +70,12 @@ class PaymentWebhookService
             DB::table('payment_webhook_events')
                 ->where('gateway', $gateway)
                 ->where('event_id', $event['event_id'])
-                ->update(['processed_at' => now()]);
-        });
+                ->update([
+                    'processed_at' => now(),
+                    'updated_at' => now(),
+                ]);
 
-        return ['ok' => true];
+            return ['ok' => true];
+        });
     }
 }

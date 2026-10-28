@@ -65,6 +65,7 @@ return [
     'wishlist_already_exists' => 'This product is already in your wishlist.',
     'wishlist_item_not_found' => 'This product is not in your wishlist.',
 
+    'invoice_order_not_confirmed' => 'An invoice can only be issued for a confirmed order.',
     'payment_must_be_pending' => 'Only pending payments can be initiated.',
     'payment_expired' => 'This payment has expired and cannot be initiated.',
     'payment_must_be_paid_for_refund' => 'Only paid payments can be refunded.',

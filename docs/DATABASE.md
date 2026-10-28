@@ -163,6 +163,7 @@ Other tables:
 - shipping_methods
 - addresses
 - payment_webhook_events (idempotency for webhooks)
+- invoice_issuances (durable invoice-issuance outbox)
 - invitations
 - password_reset_tokens, sessions (Laravel defaults)
 - personal_access_tokens (Sanctum)
@@ -307,8 +308,8 @@ Other tables:
 | Column | Type | Constraints |
 |--------|------|-------------|
 | id | unsignedBigInteger | PK, AI |
-| order_id | unsignedBigInteger | FK orders.id cascadeOnDelete, UQ |
-| number | string(50) | UQ |
+| order_id | unsignedBigInteger | FK orders.id restrictOnDelete, UQ |
+| number | string(255) | UQ |
 | status | string(50) | default: 'issued' |
 | currency | string(3) | |
 | subtotal | decimal(12,2) | |
@@ -317,6 +318,22 @@ Other tables:
 | total | decimal(12,2) | |
 | issued_at | timestamp | nullable |
 | deleted_at | timestamp | nullable |
+| created_at | timestamp | |
+| updated_at | timestamp | |
+
+### invoice_issuances
+Durable outbox for invoice creation after successful payment. One row per order.
+
+| Column | Type | Constraints |
+|--------|------|-------------|
+| id | unsignedBigInteger | PK, AI |
+| order_id | unsignedBigInteger | FK orders.id restrictOnDelete, UQ |
+| status | string(20) | default: 'pending'; pending, issued, failed |
+| attempts | unsignedTinyInteger | default: 0 |
+| available_at | timestamp | nullable, index with status |
+| last_attempted_at | timestamp | nullable |
+| issued_at | timestamp | nullable |
+| last_error | text | nullable |
 | created_at | timestamp | |
 | updated_at | timestamp | |
 
@@ -478,6 +495,7 @@ Other tables:
 - `orders`: number (UQ), status, user_id, deleted_at
 - `payments`: transaction_reference (UQ), gateway_reference, status, order_id, deleted_at
 - `invoices`: order_id (UQ), number (UQ), deleted_at
+- `invoice_issuances`: order_id (UQ), status+available_at index
 - `offers`: is_active, created_by, deleted_at
 - `offer_products`: UQ(offer_id, product_id)
 - `coupons`: code (UQ), created_by, deleted_at
@@ -521,3 +539,5 @@ Other tables:
 29. `2026_10_10_114433_create_product_image_cleanups_table.php`
 30. `2026_09_06_000001_create_cache_table.php`
 31. `2026_09_06_000002_create_jobs_table.php`
+32. `2026_10_25_000000_restrict_invoices_order_foreign_key.php` - changes invoice order FK from cascade to restrict to preserve financial history
+33. `2026_10_25_000001_create_invoice_issuances_table.php` - durable invoice-issuance outbox for paid orders; backfills confirmed paid orders that have no invoice

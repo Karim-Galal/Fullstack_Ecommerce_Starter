@@ -216,6 +216,14 @@ GET /api/v1/products?search=shirt&category_id=3&collection_id=5&min_price=10&max
 |--------|----------|-------------|
 | POST | `/payments/{payment}/initiate` | Initiate payment for pending order (returns client_secret) |
 
+### Invoices
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/invoices` | Current user's invoices (20/page), including order items and shipping address |
+| GET | `/invoices/{invoice}` | View one of the current user's invoices |
+
+A payment transition to `paid` commits the payment and confirmed order state together with a pending `invoice_issuances` work item. A queued job then issues the invoice idempotently. Invoice failure does not roll back the payment, and a scheduled sweep dispatches due or stale work. Invoices snapshot the order currency and financial totals, are read-only through the API, and remain available after an order is soft-deleted. Customers can only access their own invoices.
+
 ### Reviews
 | Method | Endpoint | Description |
 |--------|----------|-------------|
@@ -491,6 +499,14 @@ GET /api/v1/admin/users?search=alice&role=staff&status=active&email_verified=1&c
 |--------|----------|-------------|
 | POST | `/admin/payments/{payment}/refund` | Refund payment. Body: `{amount?}` (minor units) |
 
+### Admin - Invoices
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/admin/invoices` | Paginated (30/page), includes soft-deleted invoices and order/customer details |
+| GET | `/admin/invoices/{invoice}` | Single invoice with order items and customer details |
+
+Admin invoice filters: `search` (invoice number, order number, customer name/email), `issued_from`, `issued_to`, `page`, `per_page` (1-100). **Permissions:** `invoices.view`; `master_admin` bypasses permission checks.
+
 ### Admin - Invitations
 | Method | Endpoint | Description |
 |--------|----------|-------------|
@@ -516,7 +532,7 @@ GET /api/v1/admin/users?search=alice&role=staff&status=active&email_verified=1&c
 - Stripe: `Stripe-Signature` (HMAC-SHA256 with timestamp)
 - Paymob: `X-Paymob-Hmac` (HMAC-SHA512)
 
-**Idempotency:** `payment_webhook_events` table tracks processed events by `(gateway, event_id)`
+**Idempotency:** `payment_webhook_events` tracks events by `(gateway, event_id)`. Event recording, payment state changes, and the processed marker are committed atomically. Processed duplicates are no-ops; an event whose processing failed is retried rather than being permanently blocked.
 
 ## Pagination
 Default 20 per page (30 for admin). Query parameter: `?page=1`
