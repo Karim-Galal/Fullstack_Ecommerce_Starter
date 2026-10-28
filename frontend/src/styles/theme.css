@@ -162,6 +162,7 @@
   --focus-ring-width: 2px;
   --focus-ring-offset: 2px;
   --shell-max-width: 80rem;
+  --z-toast: 800;
 }
 
 /* Tailwind utilities resolve these values from the active theme. */

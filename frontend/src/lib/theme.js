@@ -14,7 +14,7 @@ export const palettes = {
 
 export const paletteNames = Object.keys(palettes);
 export const modes = ['light', 'dark'];
-export const defaultPalette = 'teal';
+export const defaultPalette = 'silver';
 export const defaultMode = 'light';
 
 /* Backward-compatible exports for any existing imports. */
