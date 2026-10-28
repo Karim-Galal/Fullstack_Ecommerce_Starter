@@ -22,7 +22,7 @@ export function Skeleton({
     <div
       key={index}
       aria-hidden="true"
-      className={`animate-pulse bg-surface-sunken motion-reduce:animate-none ${radius} ${className}`}
+      className={`skeleton-shimmer motion-reduce:animate-none ${radius} ${className}`}
       style={{ width, height, ...style }}
       {...props}
     />

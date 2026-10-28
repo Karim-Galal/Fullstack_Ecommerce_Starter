@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef } from 'react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { motion, useScroll, useTransform } from 'motion/react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -66,6 +66,7 @@ const item = {
 
 export function HomeHero() {
   const t = useTranslations('home');
+  const locale = useLocale();
   const heroRef = useRef(null);
 
   const { scrollYProgress } = useScroll({
@@ -199,7 +200,7 @@ export function HomeHero() {
             className="mt-8 flex flex-wrap items-center gap-5 sm:mt-10"
           >
             <Link
-              href="/products"
+              href={`/${locale}/products`}
               style={{
                 backgroundColor: HERO_COLORS.primaryButtonBg,
                 color: HERO_COLORS.primaryButtonText,

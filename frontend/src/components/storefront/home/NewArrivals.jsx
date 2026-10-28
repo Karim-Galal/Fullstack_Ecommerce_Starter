@@ -1,25 +1,38 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useTranslations } from 'next-intl';
+import Link from 'next/link';
+import { useLocale, useTranslations } from 'next-intl';
 import { ProductCard } from '@/components/storefront/ProductCard';
 import { ProductGridSkeleton } from '@/components/ui/skeletons/ProductGridSkeleton';
 import { Button } from '@/components/ui/Button';
-import { Alert } from '@/components/ui/Alert';
 import { EmptyState } from '@/components/ui/data-display/EmptyState';
 import { SectionHeading } from '@/components/ui/SectionHeading';
+import { Icon } from '@/components/icons';
 import { getApiErrorMessage } from '@/lib/api-error';
+import { getProductName } from '@/lib/product';
 import { cartService, productService } from '@/services/catalog';
 import { useCartStore } from '@/stores/cartStore';
 import { useWishlistStore } from '@/stores/wishlistStore';
+import { useToast } from '@/components/ui/feedback/ToastProvider';
 
 const MAX_PRODUCTS = 8;
 
 const MIN_LOADING_DURATION = 800;
 
+function waitForMinimumDuration(startedAt) {
+  const remainingTime = MIN_LOADING_DURATION - (Date.now() - startedAt);
+
+  return remainingTime > 0
+    ? new Promise((resolve) => setTimeout(resolve, remainingTime))
+    : Promise.resolve();
+}
+
 export function NewArrivals() {
+  const locale = useLocale();
   const t = useTranslations('home');
   const tCommon = useTranslations('common');
+  const { toast } = useToast();
   const setCart = useCartStore((state) => state.setCart);
   const toggleWishlist = useWishlistStore((state) => state.toggleItem);
   const wishlistItems = useWishlistStore((state) => state.items);
@@ -27,14 +40,17 @@ export function NewArrivals() {
   const [status, setStatus] = useState('loading');
   const [products, setProducts] = useState([]);
   const [loadError, setLoadError] = useState(null);
-  const [actionError, setActionError] = useState(null);
+  const [addingIds, setAddingIds] = useState([]);
   const mountedRef = useRef(false);
+  const requestIdRef = useRef(0);
+  const addingRef = useRef(new Set());
 
   useEffect(() => {
     mountedRef.current = true;
 
     return () => {
       mountedRef.current = false;
+      requestIdRef.current += 1;
     };
   }, []);
 
@@ -42,6 +58,8 @@ export function NewArrivals() {
     const response = await productService.list({
       page: 1,
       per_page: MAX_PRODUCTS,
+      sort: 'created_at',
+      direction: 'desc',
     });
 
     return Array.isArray(response?.data)
@@ -64,13 +82,33 @@ export function NewArrivals() {
     setStatus('error');
   }, []);
 
-  useEffect(() => {
-    requestProducts()
-      .then(handleProductsLoaded)
-      .catch(handleProductsError);
+  const loadProducts = useCallback(async () => {
+    const requestId = ++requestIdRef.current;
+
+    try {
+      const items = await requestProducts();
+
+      if (!mountedRef.current || requestId !== requestIdRef.current) {
+        return;
+      }
+
+      handleProductsLoaded(items);
+    } catch (error) {
+      if (!mountedRef.current || requestId !== requestIdRef.current) {
+        return;
+      }
+
+      handleProductsError(error);
+    }
   }, [handleProductsError, handleProductsLoaded, requestProducts]);
 
+  useEffect(() => {
+    loadProducts();
+  }, [loadProducts]);
+
   const handleRetry = async () => {
+    const requestId = ++requestIdRef.current;
+
     setStatus('loading');
     setProducts([]);
     setLoadError(null);
@@ -80,20 +118,18 @@ export function NewArrivals() {
     try {
       const items = await requestProducts();
 
-      const remainingTime =
-        MIN_LOADING_DURATION - (Date.now() - startedAt);
+      await waitForMinimumDuration(startedAt);
 
-      if (remainingTime > 0) {
-        await new Promise((resolve) => setTimeout(resolve, remainingTime));
+      if (!mountedRef.current || requestId !== requestIdRef.current) {
+        return;
       }
 
       handleProductsLoaded(items);
     } catch (error) {
-      const remainingTime =
-        MIN_LOADING_DURATION - (Date.now() - startedAt);
+      await waitForMinimumDuration(startedAt);
 
-      if (remainingTime > 0) {
-        await new Promise((resolve) => setTimeout(resolve, remainingTime));
+      if (!mountedRef.current || requestId !== requestIdRef.current) {
+        return;
       }
 
       handleProductsError(error);
@@ -101,17 +137,40 @@ export function NewArrivals() {
   };
 
   const handleAddToCart = async (product) => {
-    setActionError(null);
+    if (addingRef.current.has(product.id)) return;
+
+    addingRef.current.add(product.id);
+    setAddingIds(Array.from(addingRef.current));
 
     try {
       const response = await cartService.add(product.id, 1);
+
+      if (!mountedRef.current) return;
+
       setCart(response);
+      toast({
+        variant: 'success',
+        title: t('arrivals.addedToCart'),
+        description: getProductName(product, locale),
+      });
     } catch (error) {
       if (!mountedRef.current) return;
 
-      setActionError(
-        getApiErrorMessage(error, tCommon, t('arrivals.addError')),
-      );
+      toast({
+        variant: 'destructive',
+        title: tCommon('error'),
+        description: getApiErrorMessage(
+          error,
+          tCommon,
+          t('arrivals.addError'),
+        ),
+      });
+    } finally {
+      addingRef.current.delete(product.id);
+
+      if (mountedRef.current) {
+        setAddingIds(Array.from(addingRef.current));
+      }
     }
   };
 
@@ -131,22 +190,20 @@ export function NewArrivals() {
             title={t('arrivals.title')}
             description={t('arrivals.description')}
           />
-        </div>
 
-        {actionError && (
-          <Alert
-            variant="destructive"
-            description={actionError}
-            dismissible
-            onDismiss={() => setActionError(null)}
-            className="mt-8"
-          />
-        )}
+          <Link
+            href={`/${locale}/products?sort=created_at&direction=desc`}
+            className="inline-flex items-center gap-2 text-sm font-medium text-text-primary underline-offset-4 transition-colors hover:text-accent hover:underline"
+          >
+            {t('arrivals.viewAll')}
+            <Icon name="arrowRight" size="sm" className="rtl:rotate-180" />
+          </Link>
+        </div>
 
         <div className="mt-10 sm:mt-12">
           {status === 'loading' && (
             <div role="status" aria-label={t('arrivals.loading')}>
-              <ProductGridSkeleton count={4} />
+              <ProductGridSkeleton count={MAX_PRODUCTS} />
               <span className="sr-only">{t('arrivals.loading')}</span>
             </div>
           )}
@@ -193,6 +250,7 @@ export function NewArrivals() {
                   isInWishlist={wishlistItems.some(
                     (item) => item.product_id === product.id,
                   )}
+                  isAdding={addingIds.includes(product.id)}
                 />
               ))}
             </div>

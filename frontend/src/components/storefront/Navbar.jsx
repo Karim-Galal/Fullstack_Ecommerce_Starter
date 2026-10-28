@@ -59,7 +59,7 @@ export default function Navbar() {
         <DesktopNavigation />
 
         <div className="flex shrink-0 items-center gap-0.5 sm:gap-1">
-          <ThemeToggle className='hidden md:block' />
+          <ThemeToggle className='hidden md:flex' />
 
           <LanguageSwitcher />
 

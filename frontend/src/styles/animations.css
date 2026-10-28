@@ -74,6 +74,15 @@
   }
 }
 
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
 .animate-slide-in {
   animation: slide-in 0.2s ease-out;
 }
@@ -102,6 +111,24 @@
   animation: shimmer 2s linear infinite;
   background: linear-gradient(90deg, var(--surface-sunken) 25%, var(--surface-hover) 50%, var(--surface-sunken) 75%);
   background-size: 200% 100%;
+}
+
+.skeleton-shimmer {
+  background-color: var(--surface-sunken);
+  background-image: linear-gradient(
+    90deg,
+    transparent 25%,
+    color-mix(in srgb, var(--surface-sunken) 88%, var(--text-primary) 12%) 50%,
+    transparent 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.8s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-shimmer {
+    background-image: none;
+  }
 }
 
 /* Transition utilities */

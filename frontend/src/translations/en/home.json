@@ -15,6 +15,19 @@
     "threeTitle": "Made for every day",
     "threeText": "Pieces designed to be worn, not saved."
   },
+  "categories": {
+    "eyebrow": "Browse",
+    "title": "Shop by category",
+    "description": "Find the pieces that suit your everyday style.",
+    "viewAll": "View all categories",
+    "viewProducts": "View pieces",
+    "loading": "Loading categories",
+    "errorTitle": "We couldn't load the categories",
+    "errorText": "Categories may be temporarily unavailable. Check your connection and try again.",
+    "retry": "Try again",
+    "emptyTitle": "Categories are on their way",
+    "emptyText": "Check back soon to browse by category."
+  },
   "arrivals": {
     "eyebrow": "The latest",
     "title": "New arrivals",

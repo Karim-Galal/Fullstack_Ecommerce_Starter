@@ -1,12 +1,14 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import Link from 'next/link';
+import { useLocale, useTranslations } from 'next-intl';
 import { Icon } from '@/components/icons';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { storeConfig } from '@/config/store';
 
 export function CraftStory() {
   const t = useTranslations('home');
+  const locale = useLocale();
 
   return (
     <section
@@ -26,13 +28,13 @@ export function CraftStory() {
             <p>{t('craft.textTwo')}</p>
           </div>
 
-          <a
-            href="#new-arrivals"
+          <Link
+            href={`/${locale}/products`}
             className="mt-8 inline-flex items-center gap-2 border-b border-text-primary/30 pb-1 text-sm font-medium text-text-primary transition-colors hover:border-text-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
           >
             {t('craft.primary')}
             <Icon name="arrowRight" size="sm" className="rtl:rotate-180" />
-          </a>
+          </Link>
         </div>
 
         <div className="relative mx-auto w-full max-w-md lg:order-1">

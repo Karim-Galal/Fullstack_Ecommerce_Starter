@@ -1,10 +1,9 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
 import { useParams } from 'next/navigation';
-import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
 import { Breadcrumbs } from '@/components/ui/navigation/Breadcrumbs';
 import { SectionHeading } from '@/components/ui/SectionHeading';
@@ -12,10 +11,13 @@ import { EmptyState } from '@/components/ui/data-display/EmptyState';
 import { ProductCard } from '@/components/storefront/ProductCard';
 import { ProductGridSkeleton } from '@/components/ui/skeletons/ProductGridSkeleton';
 import { Icon } from '@/components/icons';
+import { useToast } from '@/components/ui/feedback/ToastProvider';
+import { getApiErrorMessage } from '@/lib/api-error';
 import { cartService, collectionService } from '@/services/catalog';
 import {
   getCollectionDescription,
   getCollectionName,
+  getProductName,
 } from '@/lib/product';
 import { useCartStore } from '@/stores/cartStore';
 import { useWishlistStore } from '@/stores/wishlistStore';
@@ -24,7 +26,10 @@ export function CollectionDetail() {
   const params = useParams();
   const locale = useLocale();
   const t = useTranslations('catalog');
+  const tProduct = useTranslations('product');
+  const tCommon = useTranslations('common');
   const tNav = useTranslations('navigation');
+  const { toast } = useToast();
 
   const identifier = Array.isArray(params.identifier)
     ? params.identifier[0]
@@ -36,7 +41,8 @@ export function CollectionDetail() {
 
   const [collection, setCollection] = useState(null);
   const [status, setStatus] = useState('loading');
-  const [actionError, setActionError] = useState(null);
+  const [addingIds, setAddingIds] = useState([]);
+  const addingRef = useRef(new Set());
 
   const loadCollection = useCallback(() => {
     collectionService
@@ -61,13 +67,28 @@ export function CollectionDetail() {
   };
 
   const handleAddToCart = async (product) => {
-    setActionError(null);
+    if (addingRef.current.has(product.id)) return;
+
+    addingRef.current.add(product.id);
+    setAddingIds(Array.from(addingRef.current));
 
     try {
       const response = await cartService.add(product.id, 1);
       setCart(response);
+      toast({
+        variant: 'success',
+        title: tProduct('addedToCart'),
+        description: getProductName(product, locale),
+      });
     } catch (error) {
-      setActionError(error.message || t('addError'));
+      toast({
+        variant: 'destructive',
+        title: tCommon('error'),
+        description: getApiErrorMessage(error, tCommon, t('addError')),
+      });
+    } finally {
+      addingRef.current.delete(product.id);
+      setAddingIds(Array.from(addingRef.current));
     }
   };
 
@@ -142,16 +163,6 @@ export function CollectionDetail() {
             </p>
           </header>
 
-          {actionError && (
-            <Alert
-              variant="destructive"
-              description={actionError}
-              dismissible
-              onDismiss={() => setActionError(null)}
-              className="mt-8"
-            />
-          )}
-
           <div className="mt-10">
             {products.length === 0 ? (
               <EmptyState
@@ -170,6 +181,7 @@ export function CollectionDetail() {
                     isInWishlist={wishlistItems.some(
                       (item) => item.product_id === product.id,
                     )}
+                    isAdding={addingIds.includes(product.id)}
                   />
                 ))}
               </div>

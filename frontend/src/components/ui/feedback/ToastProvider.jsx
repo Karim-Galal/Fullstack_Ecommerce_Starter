@@ -6,9 +6,9 @@ import { Toast } from './Toast';
 const ToastContext = createContext(null);
 
 const positionStyles = {
-  'top-left': 'top-4 start-4 items-start',
-  'top-center': 'top-4 left-1/2 -translate-x-1/2 items-center',
-  'top-right': 'top-4 end-4 items-end',
+  'top-left': 'top-20 start-4 items-start sm:top-24',
+  'top-center': 'top-20 left-1/2 -translate-x-1/2 items-center sm:top-24',
+  'top-right': 'top-20 end-4 items-end sm:top-24',
   'bottom-left': 'bottom-4 start-4 items-start',
   'bottom-center': 'bottom-4 left-1/2 -translate-x-1/2 items-center',
   'bottom-right': 'bottom-4 end-4 items-end',

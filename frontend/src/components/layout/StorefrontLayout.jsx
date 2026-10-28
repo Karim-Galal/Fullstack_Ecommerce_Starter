@@ -1,5 +1,6 @@
 import Navbar from '@/components/storefront/Navbar';
 import Footer from '@/components/storefront/Footer';
+import { ToastProvider } from '@/components/ui/feedback/ToastProvider';
 
 export function StorefrontHeader() {
   return <Navbar />;
@@ -11,15 +12,17 @@ export function StorefrontFooter() {
 
 export function StorefrontLayout({ children }) {
   return (
-    <div className="flex min-h-screen flex-col bg-surface text-text-primary">
-      <StorefrontHeader />
+    <ToastProvider>
+      <div className="flex min-h-screen flex-col bg-surface text-text-primary">
+        <StorefrontHeader />
 
-      <main className="w-full flex-1">
-        {children}
-      </main>
+        <main className="w-full flex-1">
+          {children}
+        </main>
 
-      <StorefrontFooter />
-    </div>
+        <StorefrontFooter />
+      </div>
+    </ToastProvider>
   );
 }
 

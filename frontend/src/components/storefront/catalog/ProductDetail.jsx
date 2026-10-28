@@ -1,16 +1,17 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
 import { useParams } from 'next/navigation';
-import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Breadcrumbs } from '@/components/ui/navigation/Breadcrumbs';
 import { ProductCard } from '@/components/storefront/ProductCard';
 import { PageSkeleton } from '@/components/ui/skeletons/PageSkeleton';
 import { Icon } from '@/components/icons';
+import { useToast } from '@/components/ui/feedback/ToastProvider';
+import { getApiErrorMessage } from '@/lib/api-error';
 import { cartService, productService } from '@/services/catalog';
 import {
   formatProductPrice,
@@ -27,7 +28,9 @@ export function ProductDetail() {
   const params = useParams();
   const locale = useLocale();
   const t = useTranslations('product');
+  const tCommon = useTranslations('common');
   const tNav = useTranslations('navigation');
+  const { toast } = useToast();
 
   const identifier = Array.isArray(params.identifier)
     ? params.identifier[0]
@@ -42,8 +45,9 @@ export function ProductDetail() {
   const [status, setStatus] = useState('loading');
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
-  const [feedback, setFeedback] = useState(null);
   const [adding, setAdding] = useState(false);
+  const [relatedAddingIds, setRelatedAddingIds] = useState([]);
+  const relatedAddingRef = useRef(new Set());
 
   const loadProduct = useCallback(() => {
     productService
@@ -88,7 +92,6 @@ export function ProductDetail() {
 
   const handleRetry = () => {
     setStatus('loading');
-    setFeedback(null);
     loadProduct();
   };
 
@@ -105,16 +108,20 @@ export function ProductDetail() {
 
   const handleAddToCart = async (productToAdd = product, amount = quantity) => {
     setAdding(true);
-    setFeedback(null);
 
     try {
       const response = await cartService.add(productToAdd.id, amount);
       setCart(response);
-      setFeedback({ variant: 'success', message: t('addedToCart') });
+      toast({
+        variant: 'success',
+        title: t('addedToCart'),
+        description: getProductName(productToAdd, locale),
+      });
     } catch (error) {
-      setFeedback({
+      toast({
         variant: 'destructive',
-        message: error.message || t('addError'),
+        title: tCommon('error'),
+        description: getApiErrorMessage(error, tCommon, t('addError')),
       });
     } finally {
       setAdding(false);
@@ -122,17 +129,28 @@ export function ProductDetail() {
   };
 
   const handleRelatedAdd = async (relatedProduct) => {
-    setFeedback(null);
+    if (relatedAddingRef.current.has(relatedProduct.id)) return;
+
+    relatedAddingRef.current.add(relatedProduct.id);
+    setRelatedAddingIds(Array.from(relatedAddingRef.current));
 
     try {
       const response = await cartService.add(relatedProduct.id, 1);
       setCart(response);
-      setFeedback({ variant: 'success', message: t('addedToCart') });
-    } catch (error) {
-      setFeedback({
-        variant: 'destructive',
-        message: error.message || t('addError'),
+      toast({
+        variant: 'success',
+        title: t('addedToCart'),
+        description: getProductName(relatedProduct, locale),
       });
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: tCommon('error'),
+        description: getApiErrorMessage(error, tCommon, t('addError')),
+      });
+    } finally {
+      relatedAddingRef.current.delete(relatedProduct.id);
+      setRelatedAddingIds(Array.from(relatedAddingRef.current));
     }
   };
 
@@ -189,16 +207,6 @@ export function ProductDetail() {
   return (
     <div className="shell py-10 sm:py-14">
       <Breadcrumbs items={breadcrumbItems} className="mb-8 text-sm" />
-
-      {feedback && (
-        <Alert
-          variant={feedback.variant}
-          description={feedback.message}
-          dismissible
-          onDismiss={() => setFeedback(null)}
-          className="mb-8"
-        />
-      )}
 
       <div className="grid gap-10 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:gap-14">
         <section aria-label={t('gallery')}>
@@ -396,6 +404,7 @@ export function ProductDetail() {
                 isInWishlist={wishlistItems.some(
                   (wishlistItem) => wishlistItem.product_id === item.id,
                 )}
+                isAdding={relatedAddingIds.includes(item.id)}
               />
             ))}
           </div>

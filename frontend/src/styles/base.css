@@ -34,6 +34,9 @@ a {
   text-decoration: none;
   cursor: pointer;
 }
+Button {
+  cursor: pointer;
+}
 
 /* Visible, consistent keyboard focus. Components may override with rings. */
 :focus-visible {

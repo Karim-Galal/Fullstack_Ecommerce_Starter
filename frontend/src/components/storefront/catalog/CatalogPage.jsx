@@ -1,9 +1,8 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
 import { Checkbox, Select } from '@/components/ui/Input';
 import { SearchInput } from '@/components/ui/forms/SearchInput';
@@ -14,6 +13,8 @@ import { EmptyState } from '@/components/ui/data-display/EmptyState';
 import { ProductCard } from '@/components/storefront/ProductCard';
 import { ProductGridSkeleton } from '@/components/ui/skeletons/ProductGridSkeleton';
 import { Icon } from '@/components/icons';
+import { useToast } from '@/components/ui/feedback/ToastProvider';
+import { getApiErrorMessage } from '@/lib/api-error';
 import {
   cartService,
   categoryService,
@@ -23,6 +24,7 @@ import {
 import {
   getCategoryName,
   getCollectionName,
+  getProductName,
 } from '@/lib/product';
 import { useCartStore } from '@/stores/cartStore';
 import { useWishlistStore } from '@/stores/wishlistStore';
@@ -63,7 +65,10 @@ function flattenCategories(categories = []) {
 export function CatalogPage() {
   const locale = useLocale();
   const t = useTranslations('catalog');
+  const tCommon = useTranslations('common');
+  const tProduct = useTranslations('product');
   const tNav = useTranslations('navigation');
+  const { toast } = useToast();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -81,14 +86,24 @@ export function CatalogPage() {
   const [products, setProducts] = useState([]);
   const [pagination, setPagination] = useState(null);
   const [status, setStatus] = useState('loading');
-  const [actionError, setActionError] = useState(null);
+  const [addingIds, setAddingIds] = useState([]);
   const [categories, setCategories] = useState([]);
   const [collections, setCollections] = useState([]);
+  const mountedRef = useRef(false);
+  const addingRef = useRef(new Set());
 
   const [searchDraft, setSearchDraft] = useState(filters.search || '');
   const [minPrice, setMinPrice] = useState(filters.min_price || '');
   const [maxPrice, setMaxPrice] = useState(filters.max_price || '');
   const [inStock, setInStock] = useState(filters.in_stock === '1');
+
+  useEffect(() => {
+    mountedRef.current = true;
+
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -192,13 +207,36 @@ export function CatalogPage() {
   };
 
   const handleAddToCart = async (product) => {
-    setActionError(null);
+    if (addingRef.current.has(product.id)) return;
+
+    addingRef.current.add(product.id);
+    setAddingIds(Array.from(addingRef.current));
 
     try {
       const response = await cartService.add(product.id, 1);
+
+      if (!mountedRef.current) return;
+
       setCart(response);
+      toast({
+        variant: 'success',
+        title: tProduct('addedToCart'),
+        description: getProductName(product, locale),
+      });
     } catch (error) {
-      setActionError(error.message || t('addError'));
+      if (!mountedRef.current) return;
+
+      toast({
+        variant: 'destructive',
+        title: tCommon('error'),
+        description: getApiErrorMessage(error, tCommon, t('addError')),
+      });
+    } finally {
+      addingRef.current.delete(product.id);
+
+      if (mountedRef.current) {
+        setAddingIds(Array.from(addingRef.current));
+      }
     }
   };
 
@@ -244,16 +282,6 @@ export function CatalogPage() {
         titleClassName="text-4xl font-normal tracking-[-0.035em] text-text-primary sm:text-5xl"
         descriptionClassName="mt-4 text-sm leading-7 text-text-secondary sm:text-base"
       />
-
-      {actionError && (
-        <Alert
-          variant="destructive"
-          description={actionError}
-          dismissible
-          onDismiss={() => setActionError(null)}
-          className="mt-8"
-        />
-      )}
 
       <div className="mt-10 grid gap-8 lg:grid-cols-[minmax(0,15rem)_minmax(0,1fr)] lg:gap-10">
         <aside>
@@ -442,6 +470,7 @@ export function CatalogPage() {
                       isInWishlist={wishlistItems.some(
                         (item) => item.product_id === product.id,
                       )}
+                      isAdding={addingIds.includes(product.id)}
                     />
                   ))}
                 </div>
