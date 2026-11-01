@@ -75,7 +75,7 @@ export function Drawer({
   const content = (
     <>
       <div
-        className="fixed inset-0 z-[var(--z-modal-backdrop)] bg-black/50 backdrop-blur-sm animate-fade-in motion-reduce:animate-none"
+        className="fixed inset-0  z-100 bg-black/50 backdrop-blur-sm animate-fade-in motion-reduce:animate-none"
         onClick={closeOnOverlay ? onClose : undefined}
         aria-hidden="true"
       />
