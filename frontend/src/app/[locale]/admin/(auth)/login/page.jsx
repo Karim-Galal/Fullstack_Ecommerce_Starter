@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import Link from 'next/link';
-import { useAuthStore } from '@/stores/authStore';
+import { useAuthStore, isAdminUser } from '@/stores/authStore';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Alert } from '@/components/ui/Alert';
@@ -20,16 +20,23 @@ export default function LoginPage() {
   const tAuth = useTranslations('auth');
   const tCommon = useTranslations('common');
 
-  const { setUser, setLoading } = useAuthStore();
+  const { setUser, setLoading, logout } = useAuthStore();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [error, setErrorState] = useState(null);
 
-  const callbackUrl = searchParams.get('callbackUrl') || `/${locale}`;
+  const adminRoot = `/${locale}/admin`;
+  const requestedCallback = searchParams.get('callbackUrl');
+  const isAdminCallback =
+    typeof requestedCallback === 'string' &&
+    (requestedCallback === adminRoot ||
+      requestedCallback.startsWith(`${adminRoot}/`)) &&
+    !requestedCallback.startsWith(`${adminRoot}/login`);
+
+  const callbackUrl = isAdminCallback ? requestedCallback : adminRoot;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -48,31 +55,24 @@ export default function LoginPage() {
         remember: rememberMe,
       });
 
+      if (!isAdminUser(response.user)) {
+        // The credentials are valid, but this page only admits administrators.
+        await logout();
+        setErrorState(tAuth('adminAccessRequired'));
+        return;
+      }
+
       setUser(response.user);
-      router.push(callbackUrl);
+      router.replace(callbackUrl);
     } catch (err) {
       setErrorState(
-        err?.status === 401
+        err?.status === 401 || err?.status === 422
           ? tAuth('invalidCredentials')
           : getApiErrorMessage(err, tCommon)
       );
     } finally {
       setIsLoading(false);
       setLoading(false);
-    }
-  };
-
-  const handleGoogleLogin = async () => {
-    if (isGoogleLoading) return;
-
-    setErrorState(null);
-    setIsGoogleLoading(true);
-
-    try {
-      await authService.googleRedirect();
-    } catch (err) {
-      setErrorState(getApiErrorMessage(err, tCommon));
-      setIsGoogleLoading(false);
     }
   };
 
@@ -167,13 +167,6 @@ export default function LoginPage() {
                   {tAuth('rememberMe')}
                 </span>
               </label>
-
-              <Link
-                href={`/${locale}/forgot-password`}
-                className="text-sm font-medium text-primary hover:underline"
-              >
-                {tAuth('forgotPassword')}
-              </Link>
             </div>
 
             <Button
@@ -181,7 +174,6 @@ export default function LoginPage() {
               className="w-full"
               size="lg"
               loading={isLoading}
-              disabled={isGoogleLoading}
             >
               {isLoading
                 ? isArabic
@@ -190,43 +182,6 @@ export default function LoginPage() {
                 : tAuth('login')}
             </Button>
           </form>
-
-          <div className="relative flex items-center">
-            <div className="w-full border-t border-border" />
-
-            <span className="absolute left-1/2 -translate-x-1/2 whitespace-nowrap bg-surface px-4 text-sm text-text-tertiary">
-              {tAuth('or')}
-            </span>
-          </div>
-
-          <Button
-            type="button"
-            variant="outline"
-            size="lg"
-            className="w-full"
-            leftIcon={isGoogleLoading ? undefined : 'google'}
-            loading={isGoogleLoading}
-            disabled={isLoading}
-            onClick={handleGoogleLogin}
-          >
-            {isGoogleLoading
-              ? isArabic
-                ? 'جارٍ التحويل إلى Google...'
-                : 'Redirecting to Google...'
-              : isArabic
-                ? 'المتابعة باستخدام Google'
-                : 'Continue with Google'}
-          </Button>
-
-          <p className="text-center text-sm text-text-secondary">
-            {tAuth('noAccount')}{' '}
-            <Link
-              href={`/${locale}/register`}
-              className="font-medium text-primary hover:underline"
-            >
-              {tAuth('register')}
-            </Link>
-          </p>
         </section>
       </div>
     </main>

@@ -39,6 +39,7 @@ import {
   // Actions
   Search,
   Filter,
+  ArrowDownWideNarrow,
   Settings,
   Edit,
   Trash2,
@@ -154,6 +155,7 @@ export const icons = {
   // Actions
   search: Search,
   filter: Filter,
+  sort: ArrowDownWideNarrow,
   settings: Settings,
   edit: Edit,
   delete: Trash2,

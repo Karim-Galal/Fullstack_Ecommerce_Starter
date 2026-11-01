@@ -1,36 +1,72 @@
 import { api, csrf } from './api';
 
+function buildQuery(params = {}) {
+  const query = new URLSearchParams();
+
+  Object.entries(params).forEach(([key, value]) => {
+    if (value === undefined || value === null || value === '') return;
+    if (typeof value === 'boolean') {
+      query.set(key, value ? '1' : '0');
+      return;
+    }
+    query.set(key, String(value));
+  });
+
+  const queryString = query.toString();
+
+  return queryString ? `?${queryString}` : '';
+}
+
+async function request(path, { method = 'GET', body, signal } = {}) {
+  if (method !== 'GET') {
+    await csrf();
+  }
+
+  return api(path, {
+    method,
+    signal,
+    ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+  });
+}
+
+/**
+ * CRUD helper shared by the admin resources that follow the same REST shape.
+ * Restore/force-delete routes only exist for soft-deletable resources.
+ */
+function createResource(base, { restorable = true } = {}) {
+  return {
+    list(params = {}, { signal } = {}) {
+      return api(`${base}${buildQuery(params)}`, { signal });
+    },
+    get(id, { signal } = {}) {
+      return api(`${base}/${id}`, { signal });
+    },
+    create(data) {
+      return request(base, { method: 'POST', body: data });
+    },
+    update(id, data) {
+      return request(`${base}/${id}`, { method: 'PATCH', body: data });
+    },
+    delete(id) {
+      return request(`${base}/${id}`, { method: 'DELETE' });
+    },
+    ...(restorable
+      ? {
+          restore(id) {
+            return request(`${base}/${id}/restore`, { method: 'POST' });
+          },
+          forceDelete(id) {
+            return request(`${base}/${id}/force`, { method: 'DELETE' });
+          },
+        }
+      : {}),
+  };
+}
+
+const products = createResource('/admin/products');
+
 export const adminProductService = {
-  async list(page = 1) {
-    return api(`/admin/products?page=${page}`);
-  },
-
-  async get(productId) {
-    return api(`/admin/products/${productId}`);
-  },
-
-  async create(data) {
-    await csrf();
-    return api('/admin/products', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
-  },
-
-  async update(productId, data) {
-    await csrf();
-    return api(`/admin/products/${productId}`, {
-      method: 'PATCH',
-      body: JSON.stringify(data),
-    });
-  },
-
-  async delete(productId) {
-    await csrf();
-    return api(`/admin/products/${productId}`, { method: 'DELETE' });
-  },
-
-  
+  ...products,
   async uploadImages(productId, formData) {
     await csrf();
     return api(`/admin/products/${productId}/images`, {
@@ -38,7 +74,6 @@ export const adminProductService = {
       body: formData,
     });
   },
-
   async replaceImage(productId, imageId, formData) {
     await csrf();
     return api(`/admin/products/${productId}/images/${imageId}/replace`, {
@@ -46,7 +81,6 @@ export const adminProductService = {
       body: formData,
     });
   },
-
   async updateImage(productId, imageId, data) {
     await csrf();
     return api(`/admin/products/${productId}/images/${imageId}`, {
@@ -54,273 +88,156 @@ export const adminProductService = {
       body: JSON.stringify(data),
     });
   },
-
   async deleteImage(productId, imageId) {
     await csrf();
-    return api(`/admin/products/${productId}/images/${imageId}`, { method: 'DELETE' });
+    return api(`/admin/products/${productId}/images/${imageId}`, {
+      method: 'DELETE',
+    });
   },
 };
 
-export const adminCategoryService = {
-  async list() {
-    return api('/admin/categories');
-  },
+export const adminCategoryService = createResource('/admin/categories');
 
-  async get(categoryId) {
-    return api(`/admin/categories/${categoryId}`);
-  },
+export const adminCollectionService = createResource('/admin/collections');
 
-  async create(data) {
-    await csrf();
-    return api('/admin/categories', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
-  },
+export const adminCouponService = createResource('/admin/coupons');
 
-  async update(categoryId, data) {
-    await csrf();
-    return api(`/admin/categories/${categoryId}`, {
-      method: 'PATCH',
-      body: JSON.stringify(data),
-    });
-  },
-
-  async delete(categoryId) {
-    await csrf();
-    return api(`/admin/categories/${categoryId}`, { method: 'DELETE' });
-  },
-};
-
-export const adminCollectionService = {
-  async list(page = 1) {
-    return api(`/admin/collections?page=${page}`);
-  },
-
-  async get(collectionId) {
-    return api(`/admin/collections/${collectionId}`);
-  },
-
-  async create(data) {
-    await csrf();
-    return api('/admin/collections', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
-  },
-
-  async update(collectionId, data) {
-    await csrf();
-    return api(`/admin/collections/${collectionId}`, {
-      method: 'PATCH',
-      body: JSON.stringify(data),
-    });
-  },
-
-  async delete(collectionId) {
-    await csrf();
-    return api(`/admin/collections/${collectionId}`, { method: 'DELETE' });
-  },
-};
-
-export const adminOfferService = {
-  async list(page = 1) {
-    return api(`/admin/offers?page=${page}`);
-  },
-
-  async get(offerId) {
-    return api(`/admin/offers/${offerId}`);
-  },
-
-  async create(data) {
-    await csrf();
-    return api('/admin/offers', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
-  },
-
-  async update(offerId, data) {
-    await csrf();
-    return api(`/admin/offers/${offerId}`, {
-      method: 'PATCH',
-      body: JSON.stringify(data),
-    });
-  },
-
-  async delete(offerId) {
-    await csrf();
-    return api(`/admin/offers/${offerId}`, { method: 'DELETE' });
-  },
-};
-
-export const adminCouponService = {
-  async list(page = 1) {
-    return api(`/admin/coupons?page=${page}`);
-  },
-
-  async get(couponId) {
-    return api(`/admin/coupons/${couponId}`);
-  },
-
-  async create(data) {
-    await csrf();
-    return api('/admin/coupons', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
-  },
-
-  async update(couponId, data) {
-    await csrf();
-    return api(`/admin/coupons/${couponId}`, {
-      method: 'PATCH',
-      body: JSON.stringify(data),
-    });
-  },
-
-  async delete(couponId) {
-    await csrf();
-    return api(`/admin/coupons/${couponId}`, { method: 'DELETE' });
-  },
-};
+export const adminOfferService = createResource('/admin/offers');
 
 export const adminReviewService = {
-  async list(page = 1) {
-    return api(`/admin/reviews?page=${page}`);
-  },
-
+  ...createResource('/admin/reviews'),
   async moderate(reviewId, status) {
-    await csrf();
-    return api(`/admin/reviews/${reviewId}/status`, {
+    return request(`/admin/reviews/${reviewId}/status`, {
       method: 'PATCH',
-      body: JSON.stringify({ status }),
+      body: { status },
     });
   },
 };
 
 export const adminOrderService = {
-  async list(page = 1) {
-    return api(`/admin/orders?page=${page}`);
+  list(params = {}, { signal } = {}) {
+    return api(`/admin/orders${buildQuery(params)}`, { signal });
   },
-
-  async get(orderId) {
-    return api(`/admin/orders/${orderId}`);
+  get(orderId, { signal } = {}) {
+    return api(`/admin/orders/${orderId}`, { signal });
   },
-};
-
-export const adminShippingMethodService = {
-  async list() {
-    return api('/admin/shipping-methods');
-  },
-
-  async get(id) {
-    return api(`/admin/shipping-methods/${id}`);
-  },
-
-  async create(data) {
-    await csrf();
-    return api('/admin/shipping-methods', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
-  },
-
-  async update(id, data) {
-    await csrf();
-    return api(`/admin/shipping-methods/${id}`, {
+  updateStatus(orderId, status) {
+    return request(`/admin/orders/${orderId}/status`, {
       method: 'PATCH',
-      body: JSON.stringify(data),
+      body: { status },
     });
-  },
-
-  async setDefault(id) {
-    await csrf();
-    return api(`/admin/shipping-methods/${id}/default`, { method: 'PATCH' });
-  },
-
-  async delete(id) {
-    await csrf();
-    return api(`/admin/shipping-methods/${id}`, { method: 'DELETE' });
-  },
-};
-
-export const adminUserService = {
-  async list(page = 1) {
-    return api(`/admin/users?page=${page}`);
-  },
-
-  async get(userId) {
-    return api(`/admin/users/${userId}`);
-  },
-
-  async create(data) {
-    await csrf();
-    return api('/admin/users', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
-  },
-
-  async update(userId, data) {
-    await csrf();
-    return api(`/admin/users/${userId}`, {
-      method: 'PATCH',
-      body: JSON.stringify(data),
-    });
-  },
-
-  async delete(userId) {
-    await csrf();
-    return api(`/admin/users/${userId}`, { method: 'DELETE' });
-  },
-
-  async activate(userId) {
-    await csrf();
-    return api(`/admin/users/${userId}/activate`, { method: 'PATCH' });
-  },
-
-  async deactivate(userId) {
-    await csrf();
-    return api(`/admin/users/${userId}/deactivate`, { method: 'PATCH' });
-  },
-};
-
-export const adminInvitationService = {
-  async list(page = 1) {
-    return api(`/admin/invitations?page=${page}`);
-  },
-
-  async create(data) {
-    await csrf();
-    return api('/admin/invitations', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
-  },
-
-  async approve(invitationId) {
-    await csrf();
-    return api(`/admin/invitations/${invitationId}/approve`, { method: 'POST' });
-  },
-
-  async reject(invitationId) {
-    await csrf();
-    return api(`/admin/invitations/${invitationId}/reject`, { method: 'POST' });
-  },
-
-  async revoke(invitationId) {
-    await csrf();
-    return api(`/admin/invitations/${invitationId}/revoke`, { method: 'POST' });
   },
 };
 
 export const adminPaymentService = {
-  async refund(paymentId, amount) {
-    await csrf();
-    return api(`/admin/payments/${paymentId}/refund`, {
+  list(params = {}, { signal } = {}) {
+    return api(`/admin/payments${buildQuery(params)}`, { signal });
+  },
+  get(paymentId, { signal } = {}) {
+    return api(`/admin/payments/${paymentId}`, { signal });
+  },
+  refund(paymentId, amount) {
+    return request(`/admin/payments/${paymentId}/refund`, {
       method: 'POST',
-      body: JSON.stringify({ amount }),
+      body: amount === undefined || amount === null || amount === '' ? {} : { amount },
     });
   },
 };
+
+export const adminInvoiceService = {
+  list(params = {}, { signal } = {}) {
+    return api(`/admin/invoices${buildQuery(params)}`, { signal });
+  },
+  get(invoiceId, { signal } = {}) {
+    return api(`/admin/invoices/${invoiceId}`, { signal });
+  },
+  restore(invoiceId) {
+    return request(`/admin/invoices/${invoiceId}/restore`, { method: 'POST' });
+  },
+};
+
+export const adminShippingMethodService = {
+  ...createResource('/admin/shipping-methods', { restorable: false }),
+  setDefault(id) {
+    return request(`/admin/shipping-methods/${id}/default`, {
+      method: 'PATCH',
+    });
+  },
+};
+
+export const adminUserService = {
+  ...createResource('/admin/users'),
+  activate(userId) {
+    return request(`/admin/users/${userId}/activate`, { method: 'PATCH' });
+  },
+  deactivate(userId) {
+    return request(`/admin/users/${userId}/deactivate`, { method: 'PATCH' });
+  },
+};
+
+export const adminInvitationService = {
+  list(params = {}, { signal } = {}) {
+    return api(`/admin/invitations${buildQuery(params)}`, { signal });
+  },
+  get(invitationId, { signal } = {}) {
+    return api(`/admin/invitations/${invitationId}`, { signal });
+  },
+  create(data) {
+    return request('/admin/invitations', { method: 'POST', body: data });
+  },
+  approve(invitationId) {
+    return request(`/admin/invitations/${invitationId}/approve`, {
+      method: 'POST',
+    });
+  },
+  reject(invitationId) {
+    return request(`/admin/invitations/${invitationId}/reject`, {
+      method: 'POST',
+    });
+  },
+  revoke(invitationId) {
+    return request(`/admin/invitations/${invitationId}/revoke`, {
+      method: 'POST',
+    });
+  },
+};
+
+export const adminPermissionOptions = [
+  'products.view',
+  'products.create',
+  'products.update',
+  'products.delete',
+  'categories.view',
+  'categories.create',
+  'categories.update',
+  'categories.delete',
+  'collections.view',
+  'collections.create',
+  'collections.update',
+  'collections.delete',
+  'offers.view',
+  'offers.create',
+  'offers.update',
+  'offers.delete',
+  'coupons.view',
+  'coupons.create',
+  'coupons.update',
+  'coupons.delete',
+  'reviews.view',
+  'reviews.update',
+  'reviews.delete',
+  'shipping_methods.view',
+  'shipping_methods.create',
+  'shipping_methods.update',
+  'shipping_methods.delete',
+  'orders.view',
+  'orders.update',
+  'payments.view',
+  'payments.refund',
+  'invoices.view',
+  'invoices.update',
+  'users.view',
+  'addresses.view',
+  'addresses.update',
+  'wishlists.view',
+];
