@@ -218,17 +218,17 @@ All API controllers in `app/Http/Controllers/Api/`:
 | CollectionController | Public listing/show + admin CRUD |
 | CartController | Guest/user cart management |
 | CheckoutController | Order creation from cart, applies offers/coupons |
-| PaymentController | Payment initiation, refunds (admin) |
+| PaymentController | Payment initiation; admin payment list/show and refunds |
 | PaymentWebhookController | Stripe/Paymob webhook handling |
-| InvoiceController | Customer invoice list/show + admin invoice list/show |
+| InvoiceController | Customer invoice list/show + admin invoice list/show/restore |
 | InvitationController | Staff/master_admin invitation flow |
-| CouponController | Admin coupon CRUD (list, show, create, update, soft delete) |
-| ReviewController | Public reviews + user reviews + admin moderation |
+| CouponController | Admin coupon CRUD (list, show, create, update, soft delete, restore, force delete) |
+| ReviewController | Public reviews + user reviews + admin moderation, show, delete, restore, force delete |
 | WishlistController | User wishlist + admin view |
 | AddressController | User address book + admin view |
 | ShippingMethodController | Public list + admin CRUD |
 | UserController | Admin user management |
-| OrderController | Admin order listing/show |
+| OrderController | Customer order list/show + admin order list/show/status transitions |
 | ProductImageController | Admin image upload, replace, update, delete with processing |
 | OfferController | Admin offer CRUD |
 | NotificationController | Authenticated user in-app notifications: list, unread count, mark one/all as read |
@@ -261,23 +261,25 @@ All models in `app/Models/`:
 | PushSubscription | user |
 
 ### Policies
-- **ProductPolicy**: viewAny, create, update, delete → checks `canAdmin('products.*')`
-- **CategoryPolicy**: viewAny, create, update, delete → checks `canAdmin('categories.*')`
-- **CollectionPolicy**: viewAny, create, update, delete → checks `canAdmin('collections.*')`
-- **CouponPolicy**: viewAny, view, create, update, delete → checks `canAdmin('coupons.*')`
-- **OfferPolicy**: viewAny, view, create, update, delete → checks `canAdmin('offers.*')`
-- **ReviewPolicy**: view, create, update, delete, viewAny, moderate → purchase verification for create, ownership for update/delete
-- **UserPolicy**: viewAny, manageStaff, update, delete → `viewAny` allows active staff with `users.view` (master_admin bypasses); management actions remain master_admin only
+- **ProductPolicy**: viewAny, view, create, update, delete, restore, forceDelete → checks `canAdmin('products.*')`
+- **CategoryPolicy**: viewAny, view, create, update, delete, restore, forceDelete → checks `canAdmin('categories.*')`
+- **CollectionPolicy**: viewAny, view, create, update, delete, restore, forceDelete → checks `canAdmin('collections.*')`
+- **CouponPolicy**: viewAny, view, create, update, delete, restore, forceDelete → checks `canAdmin('coupons.*')`
+- **OfferPolicy**: viewAny, view, create, update, delete, restore, forceDelete → checks `canAdmin('offers.*')`
+- **ReviewPolicy**: view, create, update, delete, viewAny, moderate, restore, forceDelete → purchase verification for create, ownership for update/delete
+- **UserPolicy**: viewAny, view, create, manageStaff, update, delete, restore, forceDelete → `viewAny` allows active staff with `users.view` (master_admin bypasses); creation and management actions remain master_admin only
 - **AddressPolicy**: viewAny, view, create, update, delete, setDefault → ownership for user, admin for admin
-- **PaymentPolicy**: view, refund → admin only for refund
-- **InvoicePolicy**: viewAny, view → admin with `invoices.view` for admin lists, invoice owner or admin for individual invoices
+- **OrderPolicy**: viewAny, view, update → admin with `orders.view` / `orders.update`
+- **PaymentPolicy**: viewAny, view, refund → `payments.view` / `payments.refund`, admin only
+- **InvoicePolicy**: viewAny, view, restore, forceDelete → admin with `invoices.view`; restore needs `invoices.update`; `forceDelete` always denied
 - **ShippingMethodPolicy**: viewAny, create, update, delete, setDefault → admin only
 - **WishlistPolicy**: view, create, delete → ownership
 - **InvitationPolicy**: viewAny, create, approve, reject, revoke → admin
 - **NotificationPolicy**: view, update → ownership; registered for `Illuminate\Notifications\DatabaseNotification` (no custom model, per ADR-003)
 
 ### Services
-- **PaymentStateService**: Enforces payment state transitions, validates amounts, triggers order confirmation, atomically records a durable invoice-issuance work item, creates the payment-confirmed in-app notification, and restores stock on expiry
+- **PaymentStateService**: Enforces payment state transitions, validates amounts, locks order then payment rows consistently, triggers order confirmation, atomically records a durable invoice-issuance work item, creates the payment-confirmed in-app notification, and restores stock only when no other attempt can still succeed. Late success on a cancelled order records the payment as paid without confirming the order or issuing an invoice.
+- **OrderStatusService**: Applies safe order status transitions; cancellation restores stock once, fails pending/unpaid payments, and is rejected when any payment is paid
 - **InvoiceService**: Issues one invoice per confirmed order inside a transaction, snapshots order financial totals, generates a deterministic `INV-` number, and returns the existing invoice on retries
 - **PaymentInitiationService**: Creates payment intent (Stripe) or intention (Paymob), returns client_secret
 - **PaymentRefundService**: Processes refunds via gateway

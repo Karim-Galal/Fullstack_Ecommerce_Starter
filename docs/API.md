@@ -211,6 +211,14 @@ GET /api/v1/products?search=shirt&category_id=3&collection_id=5&min_price=10&max
 }
 ```
 
+### Orders
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/orders` | Current user's orders (20/page) with items and shipping method |
+| GET | `/orders/{order}` | View one of the current user's orders |
+
+Customer order responses intentionally exclude payment records, invoices, and internal inventory flags. Admin order responses include those relations when loaded.
+
 ### Payments
 | Method | Endpoint | Description |
 |--------|----------|-------------|
@@ -426,8 +434,12 @@ GET /api/v1/admin/products?search=shirt&category_id=3&collection_id=5&is_active=
 ### Admin - Reviews
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/admin/reviews` | Paginated (30/page), includes soft-deleted |
+| GET | `/admin/reviews` | Paginated (30/page), supports `search`, `status`, `rating`, and `trashed` |
+| GET | `/admin/reviews/{review}` | Single review, including trashed |
 | PATCH | `/admin/reviews/{review}/status` | Moderate. Body: `{status: approved|rejected}` |
+| DELETE | `/admin/reviews/{review}` | Soft delete |
+| POST | `/admin/reviews/{review}/restore` | Restore a trashed review |
+| DELETE | `/admin/reviews/{review}/force` | Permanently delete a trashed review |
 
 ### Admin - Wishlists
 | Method | Endpoint | Description |
@@ -450,6 +462,8 @@ GET /api/v1/admin/products?search=shirt&category_id=3&collection_id=5&is_active=
 | POST | `/admin/users` | Create staff/master_admin. Body: `{name, email, password, role, status, permissions?}` |
 | PATCH | `/admin/users/{user}` | Update user |
 | DELETE | `/admin/users/{user}` | Soft delete user |
+| POST | `/admin/users/{user}/restore` | Restore a trashed user (master admin only) |
+| DELETE | `/admin/users/{user}/force` | Permanently delete a trashed user without orders (master admin only) |
 | PATCH | `/admin/users/{user}/activate` | Activate user |
 | PATCH | `/admin/users/{user}/deactivate` | Deactivate user |
 
@@ -481,8 +495,11 @@ GET /api/v1/admin/users?search=alice&role=staff&status=active&email_verified=1&c
 ### Admin - Orders
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/admin/orders` | Paginated list with filters |
-| GET | `/admin/orders/{order}` | Order details with items, user, shipping method |
+| GET | `/admin/orders` | Paginated list with search, status, date, sort, and pagination filters |
+| GET | `/admin/orders/{order}` | Order details with items, user, shipping method, payments, and invoice |
+| PATCH | `/admin/orders/{order}/status` | Transition status. Body: `{status: confirmed|shipped|delivered|cancelled}` |
+
+Allowed transitions: `pending → confirmed|cancelled`, `confirmed → shipped`, `shipped → delivered`. Delivered and cancelled are terminal. Cancellation is rejected with `422` when any payment is `paid`; refunds use the payments workflow. A late successful gateway callback for a cancelled order records the payment as `paid` but leaves the order cancelled and does not issue an invoice or send a confirmation.
 
 ### Admin - Shipping Methods
 | Method | Endpoint | Description |
@@ -497,24 +514,45 @@ GET /api/v1/admin/users?search=alice&role=staff&status=active&email_verified=1&c
 ### Admin - Payments
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/admin/payments/{payment}/refund` | Refund payment. Body: `{amount?}` (minor units) |
+| GET | `/admin/payments` | Paginated list with search, status, gateway, and date filters |
+| GET | `/admin/payments/{payment}` | Single payment with order/customer context |
+| POST | `/admin/payments/{payment}/refund` | Refund a `paid` payment. Body: `{amount?}` in major currency units; omit for a full refund |
+
+A full successful refund marks the payment `refunded`. Refunds are financial events and do not restore inventory automatically.
 
 ### Admin - Invoices
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/admin/invoices` | Paginated (30/page), includes soft-deleted invoices and order/customer details |
 | GET | `/admin/invoices/{invoice}` | Single invoice with order items and customer details |
+| POST | `/admin/invoices/{invoice}/restore` | Restore a trashed invoice |
 
-Admin invoice filters: `search` (invoice number, order number, customer name/email), `issued_from`, `issued_to`, `page`, `per_page` (1-100). **Permissions:** `invoices.view`; `master_admin` bypasses permission checks.
+Admin invoice filters: `search` (invoice number, order number, customer name/email), `issued_from`, `issued_to`, `trashed`, `page`, `per_page` (1-100). **Permissions:** `invoices.view`; restore requires `invoices.update`; `master_admin` bypasses permission checks. Invoices can never be force deleted.
 
 ### Admin - Invitations
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/admin/invitations` | Paginated (30/page) |
+| GET | `/admin/invitations/{invitation}` | Single invitation detail |
 | POST | `/admin/invitations` | Create. Body: `{email, type: staff|master_admin}` → returns invitation + invitation_url |
 | POST | `/admin/invitations/{invitation}/approve` | Approve accepted invitation |
 | POST | `/admin/invitations/{invitation}/reject` | Reject invitation |
 | POST | `/admin/invitations/{invitation}/revoke` | Revoke pending invitation |
+
+### Admin - Restore and force delete
+
+| Resource | Restore | Force delete |
+|----------|---------|--------------|
+| Products | `POST /admin/products/{product}/restore` | `DELETE /admin/products/{product}/force` |
+| Categories | `POST /admin/categories/{category}/restore` | `DELETE /admin/categories/{category}/force` |
+| Collections | `POST /admin/collections/{collection}/restore` | `DELETE /admin/collections/{collection}/force` |
+| Coupons | `POST /admin/coupons/{coupon}/restore` | `DELETE /admin/coupons/{coupon}/force` |
+| Offers | `POST /admin/offers/{offer}/restore` | `DELETE /admin/offers/{offer}/force` |
+| Reviews | `POST /admin/reviews/{review}/restore` | `DELETE /admin/reviews/{review}/force` |
+| Users | `POST /admin/users/{user}/restore` | `DELETE /admin/users/{user}/force` |
+| Invoices | `POST /admin/invoices/{invoice}/restore` | Never allowed |
+
+Restore and force-delete routes only accept already-trashed records. Products schedule existing image files through the delayed `ProductImageCleanup` mechanism before deleting rows; images are not removed immediately. Category force delete is blocked while products or child categories exist. User force delete is blocked when orders exist and is master-admin only. Orders and payments are not exposed for deletion because they are financial history. Shipping methods are not soft-deletable.
 
 ## Public Invitation Endpoints
 | Method | Endpoint | Description |

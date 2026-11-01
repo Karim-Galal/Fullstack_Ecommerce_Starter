@@ -53,32 +53,41 @@
 - [ ] Implement and verify actual email delivery in SendOrderConfirmation
 
 ## Phase 4: Admin Panel
-- [ ] Admin login page (`/admin/login`)
-- [ ] Admin dashboard layout
-- [ ] Product management
-  - List with search/filter
-  - Create/edit form (translations, images, pricing, stock)
-  - Image upload (multiple, drag-drop, WebP variants preview)
-  - Delete with confirmation
-- [ ] Category management
-  - Tree view with drag-drop reorder
-  - Create/edit form (translations)
-  - Delete with cascade handling
-- [ ] Collection management
-  - List with search/filter
-  - Create/edit form (translations, product assignment)
-  - Delete
-- [ ] Order management
-  - List with status filters
-  - Detail view
-  - Status updates
-- [ ] Invitation management
-  - Invite staff/master_admin
-  - Approve/reject/revoke
-- [ ] Coupon management UI
-- [ ] Offer management UI
-- [ ] Shipping method management
-- [ ] User management
+- [x] Admin login page (`/admin/login`)
+- [x] Admin dashboard layout
+- [x] Product management
+  - [x] List with search/filter
+  - [x] Create/edit form (translations, pricing, stock)
+  - [x] Image upload, replacement, alt text, primary selection, and variant preview
+  - [x] Delete with confirmation (soft delete, restore/force delete via Trash)
+  - [ ] Drag-and-drop image ordering
+- [x] Category management
+  - [x] Root/child listing with client-side search
+  - [x] Create/edit form (translations, parent, sort order)
+  - [x] Soft delete, restore, and guarded force delete
+  - [ ] Drag-and-drop tree reordering
+- [x] Collection management
+  - [x] List with search/filter
+  - [x] Create/edit form (translations, product assignment)
+  - [x] Delete, restore, and force delete
+- [x] Order management
+  - [x] List with status filters, search, dates, sorting, pagination
+  - [x] Detail view with items, customer, shipping, payments, and invoice
+  - [x] Safe status transitions with paid-payment cancellation guard
+- [x] Payment management
+  - [x] List/detail and permission-gated refunds
+- [x] Invoice management
+  - [x] List/detail and restore-only Trash behavior
+- [x] Invitation management
+  - [x] Invite staff/master_admin
+  - [x] Approve/reject/revoke based on invitation state
+- [x] Coupon management UI
+- [x] Offer management UI
+- [x] Review moderation UI
+- [x] Shipping method management
+- [x] User management
+- [x] Trash (restore and guarded force delete)
+- [x] English/Arabic admin translations with RTL support
 
 ## Phase 5: Promotions & Offers
 - [x] Coupon admin API
