@@ -25,6 +25,9 @@ class UpdateCollectionRequest extends FormRequest
             'translations.*.description' => ['nullable', 'string'],
             'translations.*.meta_title' => ['nullable', 'string', 'max:255'],
             'translations.*.meta_description' => ['nullable', 'string', 'max:500'],
+
+            'product_ids' => ['sometimes', 'array'],
+            'product_ids.*' => ['integer', 'distinct', 'exists:products,id'],
         ];
     }
 }

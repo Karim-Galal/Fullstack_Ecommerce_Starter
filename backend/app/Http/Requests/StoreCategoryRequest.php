@@ -3,7 +3,6 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class StoreCategoryRequest extends FormRequest
 {
@@ -15,7 +14,7 @@ class StoreCategoryRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'slug' => ['required', 'string', 'alpha_dash', 'max:180', Rule::unique('categories', 'slug')],
+            'slug' => ['sometimes', 'nullable', 'string', 'alpha_dash', 'max:180'],
             'parent_id' => ['nullable', 'integer', 'exists:categories,id'],
             'is_active' => ['sometimes', 'boolean'],
             'sort_order' => ['sometimes', 'integer', 'min:0'],

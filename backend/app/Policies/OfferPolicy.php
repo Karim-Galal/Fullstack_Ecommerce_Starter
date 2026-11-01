@@ -31,4 +31,14 @@ class OfferPolicy
     {
         return $user->canAdmin('offers.delete');
     }
+
+    public function restore(User $user, Offer $offer): bool
+    {
+        return $this->update($user, $offer);
+    }
+
+    public function forceDelete(User $user, Offer $offer): bool
+    {
+        return $this->delete($user, $offer);
+    }
 }

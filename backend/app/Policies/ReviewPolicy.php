@@ -38,4 +38,14 @@ class ReviewPolicy
     {
         return $user->canAdmin('reviews.update');
     }
+
+    public function restore(User $user, Review $review): bool
+    {
+        return $user->canAdmin('reviews.update');
+    }
+
+    public function forceDelete(User $user, Review $review): bool
+    {
+        return $user->canAdmin('reviews.delete');
+    }
 }

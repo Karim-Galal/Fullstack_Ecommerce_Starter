@@ -28,11 +28,15 @@ class ReviewResource extends JsonResource
                 return [
                     'id' => $this->product->id,
                     'slug' => $this->product->slug,
+                    'translations' => ProductTranslationResource::collection(
+                        $this->product->translations
+                    ),
                 ];
             }),
 
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
+            'deleted_at' => $this->deleted_at,
         ];
     }
 }

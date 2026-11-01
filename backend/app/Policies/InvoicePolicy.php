@@ -17,4 +17,14 @@ class InvoicePolicy
         return $invoice->order?->user_id === $user->id
             || $user->canAdmin('invoices.view');
     }
+
+    public function restore(User $user, Invoice $invoice): bool
+    {
+        return $user->canAdmin('invoices.update');
+    }
+
+    public function forceDelete(User $user, Invoice $invoice): bool
+    {
+        return false;
+    }
 }

@@ -31,4 +31,14 @@ class CollectionPolicy
     {
         return $user->canAdmin('collections.delete');
     }
+
+    public function restore(User $user, Collection $collection): bool
+    {
+        return $this->update($user, $collection);
+    }
+
+    public function forceDelete(User $user, Collection $collection): bool
+    {
+        return $this->delete($user, $collection);
+    }
 }

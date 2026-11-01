@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\IndexAdminCollectionsRequest;
 use App\Http\Requests\StoreCollectionRequest;
 use App\Http\Requests\UpdateCollectionRequest;
 use App\Http\Resources\CollectionResource;
@@ -51,18 +52,53 @@ class CollectionController extends Controller
         return new CollectionResource($collection);
     }
 
-    public function adminIndex()
+    public function adminIndex(IndexAdminCollectionsRequest $request)
     {
         $this->authorize('viewAny', Collection::class);
 
-        return CollectionResource::collection(
-            Collection::with([
+        $filters = $request->validated();
+        $trashedOnly = filter_var(
+            $filters['trashed'] ?? false,
+            FILTER_VALIDATE_BOOLEAN
+        );
+
+        $query = Collection::query()
+            ->with([
                 'translations',
                 'products',
             ])
-                ->withTrashed()
-                ->orderBy('sort_order')
-                ->paginate(30)
+            ->when(
+                $trashedOnly,
+                fn ($query) => $query->onlyTrashed()
+            )
+            ->when(
+                filled($filters['search'] ?? null),
+                fn ($query) => $query->where(function ($query) use ($filters) {
+                    $search = $filters['search'];
+
+                    $query->where('slug', 'like', "%{$search}%")
+                        ->orWhereHas('translations', function ($query) use ($search) {
+                            $query->where('name', 'like', "%{$search}%");
+                        });
+                })
+            )
+            ->when(
+                array_key_exists('is_active', $filters),
+                fn ($query) => $query->where(
+                    'is_active',
+                    filter_var($filters['is_active'], FILTER_VALIDATE_BOOLEAN)
+                )
+            )
+            ->orderBy(
+                in_array($filters['sort'] ?? null, ['sort_order', 'created_at', 'is_active'], true)
+                    ? $filters['sort']
+                    : 'sort_order',
+                ($filters['direction'] ?? null) === 'desc' ? 'desc' : 'asc'
+            )
+            ->orderBy('id');
+
+        return CollectionResource::collection(
+            $query->paginate((int) ($filters['per_page'] ?? 30))
         );
     }
 
@@ -85,6 +121,7 @@ class CollectionController extends Controller
 
         $data = $request->validated();
         $translations = $data['translations'];
+        $productIds = $data['product_ids'] ?? [];
 
         $slug = $data['slug'] ?? null;
 
@@ -94,15 +131,16 @@ class CollectionController extends Controller
             );
         }
 
-        unset($data['translations']);
+        unset($data['translations'], $data['product_ids']);
 
-        $collection = DB::transaction(function () use ($data, $translations, $slug) {
+        $collection = DB::transaction(function () use ($data, $translations, $slug, $productIds) {
             $collection = Collection::create([
                 ...$data,
                 'slug' => $slug,
             ]);
 
             $collection->translations()->createMany($translations);
+            $collection->products()->sync($productIds);
 
             return $collection;
         });
@@ -122,6 +160,9 @@ class CollectionController extends Controller
 
         $data = $request->validated();
         $translations = $data['translations'] ?? null;
+        $productIds = array_key_exists('product_ids', $data)
+            ? $data['product_ids']
+            : null;
 
         if (array_key_exists('slug', $data)) {
             $this->validateSlug($data['slug'], $collection);
@@ -131,14 +172,19 @@ class CollectionController extends Controller
             );
         }
 
-        unset($data['translations']);
+        unset($data['translations'], $data['product_ids']);
 
         $collection = DB::transaction(function () use (
             $collection,
             $data,
-            $translations
+            $translations,
+            $productIds
         ) {
             $collection->update($data);
+
+            if ($productIds !== null) {
+                $collection->products()->sync($productIds);
+            }
 
             if ($translations !== null) {
                 foreach ($translations as $translation) {
@@ -169,6 +215,41 @@ class CollectionController extends Controller
         $this->authorize('delete', $collection);
 
         $collection->delete();
+
+        return response()->noContent();
+    }
+
+    public function restore(Collection $collection)
+    {
+        $this->authorize('restore', $collection);
+
+        if (! $collection->trashed()) {
+            return new CollectionResource(
+                $collection->load('translations', 'products')
+            );
+        }
+
+        $collection->restore();
+
+        return new CollectionResource(
+            $collection->fresh()->load('translations', 'products')
+        );
+    }
+
+    public function forceDelete(Collection $collection)
+    {
+        $this->authorize('forceDelete', $collection);
+
+        if (! $collection->trashed()) {
+            throw ValidationException::withMessages([
+                'collection' => [__('api.collection_must_be_trashed')],
+            ]);
+        }
+
+        DB::transaction(function () use ($collection) {
+            $collection->products()->detach();
+            $collection->forceDelete();
+        });
 
         return response()->noContent();
     }

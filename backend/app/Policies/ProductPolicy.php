@@ -31,4 +31,14 @@ class ProductPolicy
     {
         return $user->canAdmin('products.delete');
     }
+
+    public function restore(User $user, Product $product): bool
+    {
+        return $this->update($user, $product);
+    }
+
+    public function forceDelete(User $user, Product $product): bool
+    {
+        return $this->delete($user, $product);
+    }
 }

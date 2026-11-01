@@ -21,6 +21,8 @@ class StoreUserRequest extends FormRequest
             'password' => ['required', 'confirmed', Password::defaults()],
             'role' => ['required', Rule::in(['customer', 'staff'])],
             'status' => ['sometimes', Rule::in(['active', 'inactive'])],
+            'permissions' => ['sometimes', 'array'],
+            'permissions.*' => ['string', 'distinct', Rule::in(config('admin-permissions.permissions'))],
             'device_name' => ['nullable', 'string', 'max:255'],
         ];
     }

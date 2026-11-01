@@ -11,6 +11,7 @@ use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\ValidationException;
 
 class UserController extends Controller
 {
@@ -37,19 +38,26 @@ class UserController extends Controller
 
     public function store(StoreUserRequest $request)
     {
+        $this->authorize('create', User::class);
+
         $data = $request->validated();
 
-        if ($data['role'] !== 'customer') {
+        $permissions = $data['role'] === 'staff'
+            ? array_values($data['permissions'] ?? [])
+            : [];
+
+        if ($permissions !== []) {
             $this->authorize('manageStaff', User::class);
         }
 
-        $user = DB::transaction(function () use ($data) {
+        $user = DB::transaction(function () use ($data, $permissions) {
             return User::create([
                 'name' => $data['name'],
                 'email' => $data['email'],
                 'password' => Hash::make($data['password']),
                 'role' => $data['role'],
                 'status' => $data['status'] ?? 'active',
+                'permissions' => $permissions,
             ]);
         });
 
@@ -71,11 +79,25 @@ class UserController extends Controller
             $this->authorize('manageStaff', User::class);
         }
 
+        if (array_key_exists('permissions', $data)) {
+            if ($user->role !== 'staff') {
+                throw ValidationException::withMessages([
+                    'permissions' => [__('api.permissions_staff_only')],
+                ]);
+            }
+
+            $data['permissions'] = array_values($data['permissions']);
+        }
+
         $user->update(
             collect($data)
                 ->except('password')
                 ->all()
         );
+
+        if (($data['role'] ?? null) === 'customer') {
+            $user->update(['permissions' => []]);
+        }
 
         if (! empty($data['password'])) {
             $user->update([
@@ -91,6 +113,38 @@ class UserController extends Controller
         $this->authorize('delete', $user);
 
         $user->delete();
+
+        return response()->noContent();
+    }
+
+    public function restore(User $user)
+    {
+        $this->authorize('restore', $user);
+
+        if ($user->trashed()) {
+            $user->restore();
+        }
+
+        return new UserResource($user->fresh());
+    }
+
+    public function forceDelete(User $user)
+    {
+        $this->authorize('forceDelete', $user);
+
+        if (! $user->trashed()) {
+            throw ValidationException::withMessages([
+                'user' => [__('api.user_must_be_trashed')],
+            ]);
+        }
+
+        if ($user->orders()->withTrashed()->exists()) {
+            throw ValidationException::withMessages([
+                'user' => [__('api.user_with_orders_cannot_be_deleted')],
+            ]);
+        }
+
+        $user->forceDelete();
 
         return response()->noContent();
     }

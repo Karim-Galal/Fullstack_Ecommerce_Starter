@@ -11,6 +11,11 @@ class UserPolicy
         return $user->canAdmin('users.view');
     }
 
+    public function create(User $user): bool
+    {
+        return $user->isMasterAdmin();
+    }
+
     public function manageStaff(User $user): bool
     {
         return $user->isMasterAdmin();
@@ -22,6 +27,16 @@ class UserPolicy
     }
 
     public function delete(User $user, User $target): bool
+    {
+        return $this->update($user, $target);
+    }
+
+    public function restore(User $user, User $target): bool
+    {
+        return $user->isMasterAdmin();
+    }
+
+    public function forceDelete(User $user, User $target): bool
     {
         return $this->update($user, $target);
     }

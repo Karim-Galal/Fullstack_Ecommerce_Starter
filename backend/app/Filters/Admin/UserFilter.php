@@ -12,6 +12,10 @@ class UserFilter
     {
         return $query
             ->when(
+                filter_var($filters['trashed'] ?? false, FILTER_VALIDATE_BOOLEAN),
+                fn (Builder $query) => $query->onlyTrashed()
+            )
+            ->when(
                 filled($filters['search'] ?? null),
                 fn (Builder $query) => $this->applySearch($query, $filters['search'])
             )

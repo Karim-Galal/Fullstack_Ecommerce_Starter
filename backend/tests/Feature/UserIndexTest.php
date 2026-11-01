@@ -449,7 +449,8 @@ class UserIndexTest extends TestCase
         $first = $response->json('data.0');
         $this->assertArrayNotHasKey('password', $first);
         $this->assertArrayNotHasKey('remember_token', $first);
-        $this->assertArrayNotHasKey('deleted_at', $first);
+        $this->assertArrayHasKey('deleted_at', $first);
+        $this->assertNull($first['deleted_at']);
     }
 
     public function test_soft_deleted_users_are_excluded(): void

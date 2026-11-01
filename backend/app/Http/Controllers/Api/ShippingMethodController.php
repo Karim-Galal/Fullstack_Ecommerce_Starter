@@ -24,14 +24,39 @@ class ShippingMethodController extends Controller
         return ShippingMethodResource::collection($shippingMethods);
     }
 
-    public function adminIndex()
+    public function adminIndex(Request $request)
     {
         $this->authorize('viewAny', ShippingMethod::class);
 
+        $filters = $request->validate([
+            'search' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'is_active' => ['sometimes', 'in:0,1,true,false'],
+            'is_default' => ['sometimes', 'in:0,1,true,false'],
+            'per_page' => ['sometimes', 'integer', 'min:1', 'max:100'],
+        ]);
+
         $shippingMethods = ShippingMethod::query()
+            ->when(
+                filled($filters['search'] ?? null),
+                fn ($query) => $query->where('name', 'like', '%'.$filters['search'].'%')
+            )
+            ->when(
+                array_key_exists('is_active', $filters),
+                fn ($query) => $query->where(
+                    'is_active',
+                    filter_var($filters['is_active'], FILTER_VALIDATE_BOOLEAN)
+                )
+            )
+            ->when(
+                array_key_exists('is_default', $filters),
+                fn ($query) => $query->where(
+                    'is_default',
+                    filter_var($filters['is_default'], FILTER_VALIDATE_BOOLEAN)
+                )
+            )
             ->orderByDesc('is_default')
             ->orderBy('name')
-            ->paginate(30);
+            ->paginate((int) ($filters['per_page'] ?? 30));
 
         return ShippingMethodResource::collection($shippingMethods);
     }

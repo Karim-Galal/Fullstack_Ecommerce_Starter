@@ -177,6 +177,15 @@ Route::prefix('v1')->group(function () {
 
         /*
         |--------------------------------------------------------------------------
+        | Customer Order Routes
+        |--------------------------------------------------------------------------
+        */
+
+        Route::get('orders', [OrderController::class, 'index']);
+        Route::get('orders/{order}', [OrderController::class, 'show']);
+
+        /*
+        |--------------------------------------------------------------------------
         | Invoice Routes
         |--------------------------------------------------------------------------
         */
@@ -236,8 +245,13 @@ Route::prefix('v1')->group(function () {
                 ->withTrashed();
 
             Route::post('products', [ProductController::class, 'store']);
-            Route::patch('products/{product}', [ProductController::class, 'update']);
+            Route::patch('products/{product}', [ProductController::class, 'update'])
+                ->withTrashed();
             Route::delete('products/{product}', [ProductController::class, 'destroy']);
+            Route::post('products/{product}/restore', [ProductController::class, 'restore'])
+                ->withTrashed();
+            Route::delete('products/{product}/force', [ProductController::class, 'forceDelete'])
+                ->withTrashed();
             // Admin Product Image Routes
             Route::post('products/{product}/images', [ProductImageController::class, 'store']);
             Route::post('products/{product}/images/{image}/replace', [ProductImageController::class, 'replace']);
@@ -256,8 +270,13 @@ Route::prefix('v1')->group(function () {
                 ->withTrashed();
 
             Route::post('categories', [CategoryController::class, 'store']);
-            Route::patch('categories/{category}', [CategoryController::class, 'update']);
+            Route::patch('categories/{category}', [CategoryController::class, 'update'])
+                ->withTrashed();
             Route::delete('categories/{category}', [CategoryController::class, 'destroy']);
+            Route::post('categories/{category}/restore', [CategoryController::class, 'restore'])
+                ->withTrashed();
+            Route::delete('categories/{category}/force', [CategoryController::class, 'forceDelete'])
+                ->withTrashed();
 
             /*
             |--------------------------------------------------------------------------
@@ -272,8 +291,13 @@ Route::prefix('v1')->group(function () {
                 ->withTrashed();
 
             Route::post('collections', [CollectionController::class, 'store']);
-            Route::patch('collections/{collection}', [CollectionController::class, 'update']);
+            Route::patch('collections/{collection}', [CollectionController::class, 'update'])
+                ->withTrashed();
             Route::delete('collections/{collection}', [CollectionController::class, 'destroy']);
+            Route::post('collections/{collection}/restore', [CollectionController::class, 'restore'])
+                ->withTrashed();
+            Route::delete('collections/{collection}/force', [CollectionController::class, 'forceDelete'])
+                ->withTrashed();
 
             /*
             |--------------------------------------------------------------------------
@@ -283,8 +307,10 @@ Route::prefix('v1')->group(function () {
             Route::get('offers', [OfferController::class, 'adminIndex']);
             Route::get('offers/{offer}', [OfferController::class, 'adminShow'])->withTrashed();
             Route::post('offers', [OfferController::class, 'store']);
-            Route::patch('offers/{offer}', [OfferController::class, 'update']);
+            Route::patch('offers/{offer}', [OfferController::class, 'update'])->withTrashed();
             Route::delete('offers/{offer}', [OfferController::class, 'destroy']);
+            Route::post('offers/{offer}/restore', [OfferController::class, 'restore'])->withTrashed();
+            Route::delete('offers/{offer}/force', [OfferController::class, 'forceDelete'])->withTrashed();
 
             /*
             |--------------------------------------------------------------------------
@@ -296,8 +322,10 @@ Route::prefix('v1')->group(function () {
             Route::get('coupons/{coupon}', [CouponController::class, 'adminShow'])
                 ->withTrashed();
             Route::post('coupons', [CouponController::class, 'store']);
-            Route::patch('coupons/{coupon}', [CouponController::class, 'update']);
+            Route::patch('coupons/{coupon}', [CouponController::class, 'update'])->withTrashed();
             Route::delete('coupons/{coupon}', [CouponController::class, 'destroy']);
+            Route::post('coupons/{coupon}/restore', [CouponController::class, 'restore'])->withTrashed();
+            Route::delete('coupons/{coupon}/force', [CouponController::class, 'forceDelete'])->withTrashed();
 
             /*
             |--------------------------------------------------------------------------
@@ -306,7 +334,11 @@ Route::prefix('v1')->group(function () {
             */
 
             Route::get('reviews', [ReviewController::class, 'adminIndex']);
+            Route::get('reviews/{review}', [ReviewController::class, 'adminShow'])->withTrashed();
             Route::patch('reviews/{review}/status', [ReviewController::class, 'moderate']);
+            Route::delete('reviews/{review}', [ReviewController::class, 'destroy']);
+            Route::post('reviews/{review}/restore', [ReviewController::class, 'restore'])->withTrashed();
+            Route::delete('reviews/{review}/force', [ReviewController::class, 'forceDelete'])->withTrashed();
 
             /*
             |--------------------------------------------------------------------------
@@ -332,10 +364,12 @@ Route::prefix('v1')->group(function () {
             */
 
             Route::get('users', [UserController::class, 'index']);
-            Route::get('users/{user}', [UserController::class, 'show']);
+            Route::get('users/{user}', [UserController::class, 'show'])->withTrashed();
             Route::post('users', [UserController::class, 'store']);
-            Route::patch('users/{user}', [UserController::class, 'update']);
+            Route::patch('users/{user}', [UserController::class, 'update'])->withTrashed();
             Route::delete('users/{user}', [UserController::class, 'destroy']);
+            Route::post('users/{user}/restore', [UserController::class, 'restore'])->withTrashed();
+            Route::delete('users/{user}/force', [UserController::class, 'forceDelete'])->withTrashed();
             Route::patch('users/{user}/activate', [UserController::class, 'activate']);
             Route::patch('users/{user}/deactivate', [UserController::class, 'deactivate']);
 
@@ -345,8 +379,9 @@ Route::prefix('v1')->group(function () {
             |--------------------------------------------------------------------------
             */
 
-            Route::get('orders', [OrderController::class, 'index']);
-            Route::get('orders/{order}', [OrderController::class, 'show']);
+            Route::get('orders', [OrderController::class, 'adminIndex']);
+            Route::get('orders/{order}', [OrderController::class, 'adminShow']);
+            Route::patch('orders/{order}/status', [OrderController::class, 'adminUpdateStatus']);
 
             /*
             |--------------------------------------------------------------------------
@@ -368,6 +403,9 @@ Route::prefix('v1')->group(function () {
             |--------------------------------------------------------------------------
             */
 
+            Route::get('payments', [PaymentController::class, 'adminIndex']);
+            Route::get('payments/{payment}', [PaymentController::class, 'adminShow']);
+
             Route::post(
                 'payments/{payment}/refund',
                 [PaymentController::class, 'refund']
@@ -382,6 +420,8 @@ Route::prefix('v1')->group(function () {
             Route::get('invoices', [InvoiceController::class, 'adminIndex']);
             Route::get('invoices/{invoice}', [InvoiceController::class, 'adminShow'])
                 ->withTrashed();
+            Route::post('invoices/{invoice}/restore', [InvoiceController::class, 'restore'])
+                ->withTrashed();
 
             /*
             |--------------------------------------------------------------------------
@@ -390,6 +430,7 @@ Route::prefix('v1')->group(function () {
             */
 
             Route::get('invitations', [InvitationController::class, 'index']);
+            Route::get('invitations/{invitation}', [InvitationController::class, 'adminShow']);
             Route::post('invitations', [InvitationController::class, 'store']);
             Route::post(
                 'invitations/{invitation}/approve',

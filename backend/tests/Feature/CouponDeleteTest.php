@@ -107,10 +107,16 @@ class CouponDeleteTest extends TestCase
         $show->assertStatus(200)
             ->assertJsonPath('data.id', $coupon->id);
 
-        $index = $this->actingAs($admin, 'sanctum')
+        $activeIndex = $this->actingAs($admin, 'sanctum')
             ->getJson('/api/v1/admin/coupons');
 
-        $index->assertStatus(200);
-        $this->assertCount(1, $index->json('data'));
+        $activeIndex->assertStatus(200);
+        $this->assertCount(0, $activeIndex->json('data'));
+
+        $trashedIndex = $this->actingAs($admin, 'sanctum')
+            ->getJson('/api/v1/admin/coupons?trashed=1');
+
+        $trashedIndex->assertStatus(200);
+        $this->assertCount(1, $trashedIndex->json('data'));
     }
 }

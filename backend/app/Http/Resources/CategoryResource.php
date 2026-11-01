@@ -21,8 +21,12 @@ class CategoryResource extends JsonResource
             'children' => CategoryResource::collection(
                 $this->whenLoaded('children')
             ),
+            'parent' => $this->whenLoaded('parent', fn () => $this->parent
+                ? new CategoryResource($this->parent)
+                : null),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
+            'deleted_at' => $this->deleted_at,
         ];
     }
 }

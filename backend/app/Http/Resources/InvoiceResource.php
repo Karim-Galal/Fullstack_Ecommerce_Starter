@@ -34,7 +34,7 @@ class InvoiceResource extends JsonResource
                     'items' => $this->order->relationLoaded('items')
                         ? OrderItemResource::collection($this->order->items)
                         : [],
-                    'user' => $this->order->relationLoaded('user')
+                    'user' => $this->order->relationLoaded('user') && $this->order->user
                         ? [
                             'id' => $this->order->user->id,
                             'name' => $this->order->user->name,
@@ -46,6 +46,7 @@ class InvoiceResource extends JsonResource
 
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
+            'deleted_at' => $this->deleted_at,
         ];
     }
 }

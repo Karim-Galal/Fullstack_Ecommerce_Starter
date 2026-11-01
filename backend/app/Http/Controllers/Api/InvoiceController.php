@@ -39,9 +39,18 @@ class InvoiceController extends Controller
 
         $data = $request->validated();
         $search = $data['search'] ?? null;
+        $trashedOnly = filter_var(
+            $data['trashed'] ?? false,
+            FILTER_VALIDATE_BOOLEAN
+        );
 
-        $invoices = Invoice::withTrashed()
+        $invoices = Invoice::query()
             ->with(['order.items', 'order.user'])
+            ->when($trashedOnly, fn ($query) => $query->onlyTrashed())
+            ->when(
+                $data['status'] ?? null,
+                fn ($query, $status) => $query->where('status', $status)
+            )
             ->when($search, function ($query) use ($search) {
                 $query->where(function ($query) use ($search) {
                     $query->where('number', 'like', "%{$search}%")
@@ -69,6 +78,19 @@ class InvoiceController extends Controller
 
         return new InvoiceResource(
             $invoice->load(['order.items', 'order.user'])
+        );
+    }
+
+    public function restore(Invoice $invoice)
+    {
+        $this->authorize('restore', $invoice);
+
+        if ($invoice->trashed()) {
+            $invoice->restore();
+        }
+
+        return new InvoiceResource(
+            $invoice->fresh()->load(['order.items', 'order.user'])
         );
     }
 }

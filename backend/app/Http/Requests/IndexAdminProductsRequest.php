@@ -27,6 +27,7 @@ class IndexAdminProductsRequest extends FormRequest
                 $this->filled('min_price') ? 'gte:min_price' : null,
             ]),
             'in_stock' => ['sometimes', Rule::in(['0', '1', 'true', 'false'])],
+            'trashed' => ['sometimes', Rule::in(['0', '1', 'true', 'false'])],
             'created_from' => ['sometimes', 'date'],
             'created_to' => array_filter([
                 'sometimes',

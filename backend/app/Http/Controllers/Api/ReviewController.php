@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\IndexAdminReviewsRequest;
 use App\Http\Requests\ModerateReviewRequest;
 use App\Http\Requests\StoreReviewRequest;
 use App\Http\Requests\UpdateReviewRequest;
@@ -124,16 +125,84 @@ class ReviewController extends Controller
         return response()->noContent();
     }
 
-    public function adminIndex()
+    public function adminIndex(IndexAdminReviewsRequest $request)
     {
         $this->authorize('viewAny', Review::class);
 
-        return ReviewResource::collection(
-            Review::withTrashed()
-                ->with('user', 'product')
-                ->latest()
-                ->paginate(30)
+        $filters = $request->validated();
+        $trashedOnly = filter_var(
+            $filters['trashed'] ?? false,
+            FILTER_VALIDATE_BOOLEAN
         );
+
+        $query = Review::query()
+            ->with('user', 'product.translations')
+            ->when($trashedOnly, fn ($query) => $query->onlyTrashed())
+            ->when(
+                filled($filters['search'] ?? null),
+                fn ($query) => $query->where(function ($query) use ($filters) {
+                    $search = $filters['search'];
+
+                    $query->where('comment', 'like', "%{$search}%")
+                        ->orWhereHas('user', function ($query) use ($search) {
+                            $query->where('name', 'like', "%{$search}%")
+                                ->orWhere('email', 'like', "%{$search}%");
+                        })
+                        ->orWhereHas('product.translations', function ($query) use ($search) {
+                            $query->where('name', 'like', "%{$search}%");
+                        });
+                })
+            )
+            ->when(
+                filled($filters['status'] ?? null),
+                fn ($query) => $query->where('status', $filters['status'])
+            )
+            ->when(
+                filled($filters['rating'] ?? null),
+                fn ($query) => $query->where('rating', $filters['rating'])
+            )
+            ->latest();
+
+        return ReviewResource::collection(
+            $query->paginate((int) ($filters['per_page'] ?? 30))
+        );
+    }
+
+    public function adminShow(Review $review)
+    {
+        $this->authorize('view', $review);
+
+        return new ReviewResource(
+            $review->load('user', 'product.translations')
+        );
+    }
+
+    public function restore(Review $review)
+    {
+        $this->authorize('restore', $review);
+
+        if ($review->trashed()) {
+            $review->restore();
+        }
+
+        return new ReviewResource(
+            $review->fresh()->load('user', 'product.translations')
+        );
+    }
+
+    public function forceDelete(Review $review)
+    {
+        $this->authorize('forceDelete', $review);
+
+        if (! $review->trashed()) {
+            throw ValidationException::withMessages([
+                'review' => [__('api.review_must_be_trashed')],
+            ]);
+        }
+
+        $review->forceDelete();
+
+        return response()->noContent();
     }
 
     public function moderate(

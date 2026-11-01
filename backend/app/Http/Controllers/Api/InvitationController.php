@@ -15,13 +15,45 @@ use Illuminate\Validation\ValidationException;
 
 class InvitationController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $this->authorize('viewAny', Invitation::class);
 
-        return InvitationResource::collection(
-            Invitation::latest()->paginate(30)
-        );
+        $filters = $request->validate([
+            'search' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'status' => ['sometimes', 'string', 'in:pending,accepted,approved,rejected,revoked'],
+            'type' => ['sometimes', 'string', 'in:staff,master_admin'],
+            'per_page' => ['sometimes', 'integer', 'min:1', 'max:100'],
+        ]);
+
+        $invitations = Invitation::query()
+            ->when(
+                filled($filters['search'] ?? null),
+                fn ($query) => $query->where(
+                    'invited_email',
+                    'like',
+                    '%'.$filters['search'].'%'
+                )
+            )
+            ->when(
+                $filters['status'] ?? null,
+                fn ($query, $status) => $query->where('status', $status)
+            )
+            ->when(
+                $filters['type'] ?? null,
+                fn ($query, $type) => $query->where('type', $type)
+            )
+            ->latest()
+            ->paginate((int) ($filters['per_page'] ?? 30));
+
+        return InvitationResource::collection($invitations);
+    }
+
+    public function adminShow(Invitation $invitation)
+    {
+        $this->authorize('view', $invitation);
+
+        return new InvitationResource($invitation);
     }
 
     public function store(

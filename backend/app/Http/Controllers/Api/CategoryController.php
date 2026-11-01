@@ -7,10 +7,10 @@ use App\Http\Requests\StoreCategoryRequest;
 use App\Http\Requests\UpdateCategoryRequest;
 use App\Http\Resources\CategoryResource;
 use App\Models\Category;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
-use Illuminate\Support\Facades\Log;
 
 class CategoryController extends Controller
 {
@@ -28,15 +28,23 @@ class CategoryController extends Controller
         return CategoryResource::collection($categories);
     }
 
-    public function adminIndex()
+    public function adminIndex(Request $request)
     {
         $this->authorize('viewAny', Category::class);
+
+        $trashedOnly = filter_var(
+            $request->query('trashed', false),
+            FILTER_VALIDATE_BOOLEAN
+        );
 
         $categories = Category::with([
             'translations',
             'children.translations',
+            'parent.translations',
         ])
+            ->when($trashedOnly, fn ($query) => $query->onlyTrashed())
             ->orderBy('sort_order')
+            ->orderBy('id')
             ->get();
 
         return CategoryResource::collection($categories);
@@ -139,6 +147,47 @@ class CategoryController extends Controller
         $this->authorize('delete', $category);
 
         $category->delete();
+
+        return response()->noContent();
+    }
+
+    public function restore(Category $category)
+    {
+        $this->authorize('restore', $category);
+
+        if ($category->trashed()) {
+            $category->restore();
+        }
+
+        return new CategoryResource(
+            $category->fresh()->load('translations', 'children.translations')
+        );
+    }
+
+    public function forceDelete(Category $category)
+    {
+        $this->authorize('forceDelete', $category);
+
+        if (! $category->trashed()) {
+            throw ValidationException::withMessages([
+                'category' => [__('api.category_must_be_trashed')],
+            ]);
+        }
+
+        $hasProducts = $category->products()->withTrashed()->exists();
+        $hasChildren = Category::withTrashed()
+            ->where('parent_id', $category->id)
+            ->exists();
+
+        if ($hasProducts || $hasChildren) {
+            throw ValidationException::withMessages([
+                'category' => [
+                    __('api.category_in_use_cannot_be_deleted'),
+                ],
+            ]);
+        }
+
+        $category->forceDelete();
 
         return response()->noContent();
     }

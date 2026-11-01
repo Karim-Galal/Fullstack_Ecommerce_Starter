@@ -46,7 +46,7 @@ class PaymentExpirationJob implements ShouldQueue
         try {
             $state->apply($payment, 'expired');
 
-            Log::info('PaymentExpirationJob: Payment expired and stock restored', [
+            Log::info('PaymentExpirationJob: Payment expired', [
                 'payment_id' => $this->paymentId,
             ]);
         } catch (\Throwable $e) {

@@ -10,8 +10,11 @@ use App\Http\Requests\IndexStoreProductsRequest;
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
 use App\Models\Product;
+use App\Models\ProductImage;
+use App\Models\ProductImageCleanup;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class ProductController extends Controller
 {
@@ -50,9 +53,19 @@ class ProductController extends Controller
 
         $filters = $request->validated();
         $perPage = (int) ($filters['per_page'] ?? 30);
+        $trashedOnly = filter_var(
+            $filters['trashed'] ?? false,
+            FILTER_VALIDATE_BOOLEAN
+        );
+
+        $query = Product::with(['translations', 'images', 'category.translations']);
+
+        if ($trashedOnly) {
+            $query->onlyTrashed();
+        }
 
         return $filter
-            ->apply(Product::with(['translations', 'images']), $filters)
+            ->apply($query, $filters)
             ->paginate($perPage);
     }
 
@@ -140,6 +153,57 @@ class ProductController extends Controller
         $this->authorize('delete', $product);
 
         $product->delete();
+
+        return response()->noContent();
+    }
+
+    public function restore(Product $product)
+    {
+        $this->authorize('restore', $product);
+
+        if ($product->trashed()) {
+            $product->restore();
+        }
+
+        return $product->fresh()->load(['translations', 'images']);
+    }
+
+    public function forceDelete(Product $product)
+    {
+        $this->authorize('forceDelete', $product);
+
+        if (! $product->trashed()) {
+            throw ValidationException::withMessages([
+                'product' => [__('api.product_must_be_trashed')],
+            ]);
+        }
+
+        DB::transaction(function () use ($product) {
+            $images = ProductImage::withTrashed()
+                ->where('product_id', $product->id)
+                ->get();
+
+            foreach ($images as $image) {
+                $paths = array_values(array_filter([
+                    $image->path,
+                    ...array_values($image->variants ?? []),
+                ]));
+
+                if ($paths !== []) {
+                    ProductImageCleanup::create([
+                        'disk' => $image->disk,
+                        'paths' => $paths,
+                        'delete_after' => now()->addDays(
+                            config('product-images.retention_days')
+                        ),
+                    ]);
+                }
+
+                $image->forceDelete();
+            }
+
+            $product->forceDelete();
+        });
 
         return response()->noContent();
     }

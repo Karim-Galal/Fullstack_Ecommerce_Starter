@@ -31,4 +31,14 @@ class CategoryPolicy
     {
         return $user->canAdmin('categories.delete');
     }
+
+    public function restore(User $user, Category $category): bool
+    {
+        return $this->update($user, $category);
+    }
+
+    public function forceDelete(User $user, Category $category): bool
+    {
+        return $this->delete($user, $category);
+    }
 }

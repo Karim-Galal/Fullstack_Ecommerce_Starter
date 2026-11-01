@@ -3,22 +3,49 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\IndexAdminCouponsRequest;
 use App\Http\Requests\StoreCouponRequest;
 use App\Http\Requests\UpdateCouponRequest;
 use App\Http\Resources\CouponResource;
 use App\Models\Coupon;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class CouponController extends Controller
 {
-    public function adminIndex()
+    public function adminIndex(IndexAdminCouponsRequest $request)
     {
         $this->authorize('viewAny', Coupon::class);
 
+        $filters = $request->validated();
+        $trashedOnly = filter_var(
+            $filters['trashed'] ?? false,
+            FILTER_VALIDATE_BOOLEAN
+        );
+
+        $query = Coupon::query()
+            ->with(['createdBy', 'products'])
+            ->when($trashedOnly, fn ($query) => $query->onlyTrashed())
+            ->when(
+                filled($filters['search'] ?? null),
+                fn ($query) => $query->where('code', 'like', '%'.$filters['search'].'%')
+            )
+            ->when(
+                array_key_exists('is_active', $filters),
+                fn ($query) => $query->where(
+                    'is_active',
+                    filter_var($filters['is_active'], FILTER_VALIDATE_BOOLEAN)
+                )
+            )
+            ->orderBy(
+                in_array($filters['sort'] ?? null, ['created_at', 'code', 'expires_at', 'used_count'], true)
+                    ? $filters['sort']
+                    : 'created_at',
+                ($filters['direction'] ?? null) === 'asc' ? 'asc' : 'desc'
+            );
+
         return CouponResource::collection(
-            Coupon::withTrashed()
-                ->with(['createdBy', 'products'])
-                ->latest()
-                ->paginate(30)
+            $query->paginate((int) ($filters['per_page'] ?? 30))
         );
     }
 
@@ -77,6 +104,37 @@ class CouponController extends Controller
         $this->authorize('delete', $coupon);
 
         $coupon->delete();
+
+        return response()->noContent();
+    }
+
+    public function restore(Coupon $coupon)
+    {
+        $this->authorize('restore', $coupon);
+
+        if ($coupon->trashed()) {
+            $coupon->restore();
+        }
+
+        return new CouponResource(
+            $coupon->fresh()->load(['createdBy', 'products'])
+        );
+    }
+
+    public function forceDelete(Coupon $coupon)
+    {
+        $this->authorize('forceDelete', $coupon);
+
+        if (! $coupon->trashed()) {
+            throw ValidationException::withMessages([
+                'coupon' => [__('api.coupon_must_be_trashed')],
+            ]);
+        }
+
+        DB::transaction(function () use ($coupon) {
+            $coupon->products()->detach();
+            $coupon->forceDelete();
+        });
 
         return response()->noContent();
     }

@@ -7,18 +7,18 @@ use App\Models\User;
 
 class PaymentPolicy
 {
-    public function view(User $user, Payment $payment): bool
+    public function viewAny(User $user): bool
     {
-        return $payment->order->user_id === $user->id;
+        return $user->canAdmin('payments.view');
     }
 
-    public function initiate(User $user, Payment $payment): bool
+    public function view(User $user, Payment $payment): bool
     {
-        return $payment->order->user_id === $user->id;
+        return $user->canAdmin('payments.view');
     }
 
     public function refund(User $user, Payment $payment): bool
     {
-        return $user->isMasterAdmin() || ($user->isActiveStaff() && $user->canAdmin('payments.refund'));
+        return $user->canAdmin('payments.refund');
     }
 }

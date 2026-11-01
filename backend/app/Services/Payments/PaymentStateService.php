@@ -5,7 +5,9 @@ namespace App\Services\Payments;
 use App\Jobs\IssueOrderInvoice;
 use App\Jobs\SendOrderConfirmation;
 use App\Models\InvoiceIssuance;
+use App\Models\Order;
 use App\Models\Payment;
+use App\Models\Product;
 use App\Notifications\PaymentConfirmedNotification;
 use App\Notifications\PaymentExpiredNotification;
 use App\Notifications\PaymentFailedNotification;
@@ -24,12 +26,25 @@ class PaymentStateService
         'expired' => [],
     ];
 
-    public function apply(Payment $payment, string $status, ?string $gatewayReference, array $metadata = []): Payment
+    public function apply(Payment $payment, string $status, ?string $gatewayReference = null, array $metadata = []): Payment
     {
         return DB::transaction(function () use ($payment, $status, $gatewayReference, $metadata) {
-            $payment = Payment::lockForUpdate()->with('order.items.product')->findOrFail($payment->id);
+            // Lock the order before the payment row. Order cancellation uses the
+            // same order -> payments lock order, which avoids deadlocks between
+            // admin cancellations, gateway callbacks, and expiry workers.
+            $order = Order::withTrashed()
+                ->lockForUpdate()
+                ->findOrFail($payment->order_id);
 
-            $this->validateAmount($payment);
+            $payment = Payment::lockForUpdate()->findOrFail($payment->id);
+            $payment->setRelation('order', $order);
+
+            // Refunds are validated against the payment amount by the refund
+            // endpoint, not against the order total, so the gateway amount
+            // consistency check only applies to payment confirmations.
+            if ($status !== 'refunded') {
+                $this->validateAmount($payment);
+            }
 
             if ($payment->status === $status) {
                 return $payment;
@@ -45,47 +60,11 @@ class PaymentStateService
             ])->save();
 
             if ($status === 'paid') {
-                $payment->order->update(['status' => 'confirmed']);
-
-                $issuance = InvoiceIssuance::firstOrCreate(
-                    ['order_id' => $payment->order_id],
-                    [
-                        'status' => InvoiceIssuance::STATUS_PENDING,
-                        'available_at' => now(),
-                    ]
-                );
-
-                if ($issuance->status !== InvoiceIssuance::STATUS_ISSUED) {
-                    DB::afterCommit(function () use ($issuance) {
-                        try {
-                            IssueOrderInvoice::dispatch($issuance->id);
-                        } catch (\Throwable $exception) {
-                            Log::error('Failed to dispatch invoice issuance', [
-                                'issuance_id' => $issuance->id,
-                                'order_id' => $issuance->order_id,
-                                'error' => $exception->getMessage(),
-                            ]);
-                        }
-                    });
-                }
-
-                SendOrderConfirmation::dispatch($payment->order_id)->afterCommit();
-
-                if ($payment->order->user) {
-                    $payment->order->user->notify(
-                        new PaymentConfirmedNotification($payment->order)
-                    );
-                }
+                $this->handlePaid($payment, $order);
             }
 
             if ($status === 'expired') {
-                $this->restoreStock($payment);
-
-                if ($payment->order->user) {
-                    $payment->order->user->notify(
-                        new PaymentExpiredNotification($payment->order)
-                    );
-                }
+                $this->handleExpired($payment, $order);
             }
 
             if ($status === 'failed' && $payment->order->user) {
@@ -96,6 +75,82 @@ class PaymentStateService
 
             return $payment;
         });
+    }
+
+    /**
+     * A successful gateway callback for a cancelled order is kept as a paid
+     * payment for manual financial reconciliation, but it must not resurrect
+     * the order or emit invoice/confirmation side effects.
+     */
+    private function handlePaid(Payment $payment, Order $order): void
+    {
+        if ($order->status === 'cancelled') {
+            Log::warning('Payment succeeded for a cancelled order; manual reconciliation required', [
+                'payment_id' => $payment->id,
+                'order_id' => $order->id,
+            ]);
+
+            return;
+        }
+
+        $order->update(['status' => 'confirmed']);
+
+        $issuance = InvoiceIssuance::firstOrCreate(
+            ['order_id' => $payment->order_id],
+            [
+                'status' => InvoiceIssuance::STATUS_PENDING,
+                'available_at' => now(),
+            ]
+        );
+
+        if ($issuance->status !== InvoiceIssuance::STATUS_ISSUED) {
+            DB::afterCommit(function () use ($issuance) {
+                try {
+                    IssueOrderInvoice::dispatch($issuance->id);
+                } catch (\Throwable $exception) {
+                    Log::error('Failed to dispatch invoice issuance', [
+                        'issuance_id' => $issuance->id,
+                        'order_id' => $issuance->order_id,
+                        'error' => $exception->getMessage(),
+                    ]);
+                }
+            });
+        }
+
+        SendOrderConfirmation::dispatch($payment->order_id)->afterCommit();
+
+        if ($order->user) {
+            $order->user->notify(
+                new PaymentConfirmedNotification($order)
+            );
+        }
+    }
+
+    /**
+     * Expiring one payment attempt must not restock the order while another
+     * attempt can still succeed. A failed attempt remains eligible for a late
+     * gateway success (`failed -> paid`), so it counts as a remaining attempt.
+     * Stock is restored only when no such attempt remains for the order.
+     */
+    private function handleExpired(Payment $payment, Order $order): void
+    {
+        if ($order->status !== 'cancelled') {
+            $otherAttemptsRemain = $order->payments()
+                ->whereKeyNot($payment->id)
+                ->whereIn('status', ['unpaid', 'pending', 'failed'])
+                ->lockForUpdate()
+                ->exists();
+
+            if (! $otherAttemptsRemain) {
+                $this->restoreStock($order);
+            }
+        }
+
+        if ($order->user) {
+            $order->user->notify(
+                new PaymentExpiredNotification($order)
+            );
+        }
     }
 
     private function validateAmount(Payment $payment): void
@@ -116,12 +171,24 @@ class PaymentStateService
         }
     }
 
-    private function restoreStock(Payment $payment): void
+    private function restoreStock(Order $order): void
     {
-        foreach ($payment->order->items as $item) {
-            if ($item->product) {
-                $item->product->increment('stock', $item->quantity);
-            }
+        // The order row is already locked by apply(), so this guard is safe
+        // against concurrent cancellations and expiration workers.
+        if ($order->stock_restored_at !== null) {
+            return;
         }
+
+        foreach ($order->items()->get() as $item) {
+            if ($item->product_id === null) {
+                continue;
+            }
+
+            Product::withTrashed()
+                ->whereKey($item->product_id)
+                ->increment('stock', $item->quantity);
+        }
+
+        $order->forceFill(['stock_restored_at' => now()])->save();
     }
 }

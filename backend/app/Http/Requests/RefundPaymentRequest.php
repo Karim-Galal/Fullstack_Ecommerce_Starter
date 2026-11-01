@@ -12,7 +12,7 @@ class RefundPaymentRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return $this->user()?->canAdmin('payments.refund') ?? false;
     }
 
     /**
@@ -23,7 +23,24 @@ class RefundPaymentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            // Amount is expressed in major currency units. Omitting it requests
+            // a full refund through the configured payment gateway.
+            'amount' => [
+                'sometimes',
+                'nullable',
+                'numeric',
+                'gt:0',
+                function (string $attribute, mixed $value, \Closure $fail) {
+                    $payment = $this->route('payment');
+
+                    if (
+                        $payment instanceof \App\Models\Payment
+                        && (float) $value > (float) $payment->amount
+                    ) {
+                        $fail(__('api.refund_amount_exceeds_payment'));
+                    }
+                },
+            ],
         ];
     }
 }

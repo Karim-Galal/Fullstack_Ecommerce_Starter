@@ -21,6 +21,8 @@ class UpdateUserRequest extends FormRequest
             'password' => ['sometimes', 'nullable', 'confirmed', Password::defaults()],
             'role' => ['sometimes', Rule::in(['customer', 'staff'])],
             'status' => ['sometimes', Rule::in(['active', 'inactive'])],
+            'permissions' => ['sometimes', 'array'],
+            'permissions.*' => ['string', 'distinct', Rule::in(config('admin-permissions.permissions'))],
         ];
     }
 }

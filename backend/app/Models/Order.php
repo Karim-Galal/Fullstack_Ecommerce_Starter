@@ -32,6 +32,7 @@ class Order extends Model
         'shipping_total' => 'decimal:2',
         'total' => 'decimal:2',
         'shipping_address' => 'array',
+        'stock_restored_at' => 'datetime',
     ];
 
     public function user(): BelongsTo
